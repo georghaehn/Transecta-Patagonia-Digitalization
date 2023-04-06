@@ -1,0 +1,1145 @@
+---
+title: "Transecta Botanica Patagonia Austral - Data Preparation"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+This is the complete script to transform the digitalized rawdata from the book Transecta Patagonia (Roig and Faggi 1985) to a common vegetation database format. The script has the following purposes:  
+
+1. Compile the rawdata to two different files containing the species abundance data per plot, and the environmental description of each plot.  
+2. Cleaning species names by matching it with the Argentinian Flora as well as with common plant species databases.  
+3. Export the data for use in Turboveg2, Microsoft Excel, and R  
+
+\newline
+The output is organized in two data.frames:  
+\newline
+
+*DT* - It contains the species x plot data, together with species related information. It contains 6 colums:  
+
+- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta. It is composed by a string formatted as `tXX_gXX_pXXX`, where `t` corresponds to the table number, `g` to the group number and `p` to the plot numnber as reported in the book  
+- `Species` - Species name after taxonomic standardization. The taxonomic name is normally resolved at the species level. For a minority of taxa, it was resolved either at the infra-species (e.g., variaty), or genus level  
+- `Taxon_group` - Taxonomic group of the corresponding species. The great majority of taxa are vascular plants. A few entries correspond to algae, mosses, lichens, fungi or unknown (in case of unresolved species names)  
+- `Original_species` - Original taxonomic name as reported in the Transecta  
+- `Abundance` - Cover\\abundance value of the species in the plot, following Braun-Blanquet scale  
+- `Match_level` - The taxonomic rank at which the taxonomic name was resolved (i.e., species, genus, unknown if unresolved)  
+- `Height_cm` - Height range of the species. This was only seldom reported in the original publication, and only for few emblematic species.  
+- `Note` - Additional notes from the original publication. Notes include information on the development stage of specific plant species (in Spanish, e.g., 'plantulas', 'renoval', 'brinzal'...), or codes to distinguish congeneric species not resolved at species name (e.g., 'I', 'II', 'III'), or codes indicating characteristic species or phytosociological alliances or classes (i.e., 'all', 'cl')  
+\newline
+
+*Header* - Table containing plot level information  
+
+- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta  
+- `Date` - Date of the relevè (dd.mm.yyyy)  
+- `Country` -	Country (AR - Argentina, CHL - Chile)  
+- `Latitude` - as Degree.decimals, WGS84  
+- `Longitude` - as Degree.decimals, WGS84  
+- `Location_uncertainty_km` - Estimated uncertainty of the relevè position, in km	 
+- `Releve_area_m2` - Size of the vegetation relevé, in m^2	 
+- `Note` - Additional text information on the relevé, normally the toponym  
+- `Elevation_m` -	Elevation above m.s.l., as reported in the Transecta (when available)  
+- `Aspect` - Exposition of the relevé (e.g., NW)  
+- `Slope_perc` - Slope of the relevé (in %)	 
+- `Soil_type` -	Soil type, as described in the Transecta (when available)  
+- `Soil_depth_first_horizon_cm` -	Depth of the first soil horizon (in cm, when available)  
+- `Soil_depth_cm` -	Depth of the soil (in cm, when available)  
+- `Degraded_soil_perc` - Cover percentage of degraded soil, as reported in the Transecata (when available)  
+- `Vegetation_belt` -	Elevational belt in the landscape, as reported (when available)  
+- `Total_vegetation_cover` - Total cover of the vegetation, as reported (in %, when available)	
+- `Height_tree_layer_m` -	Height of tree layer, as reported (in m, when available)  
+- `Condition` -	Description of the vegetation conservation status (when available)  
+- `Vegetation_physiognomy` -	Vegetation type, normally based on the phytosociological nomenclature, as reported  
+- `FaberLangendoen_formation` -	Vegetation formation following the third hierarchical level of [Faber-Langendoen et al. 2016](https://www.natureserve.org/sites/default/files/faber-langendoen_etal_2016-world_formations_gtr346.pdf)  
+- `Forest` - Boolean  
+- `Shrubland` -	Boolean  
+- `Grassland` -	Boolean  
+- `Wetland` -	Boolean  
+- `Sparse_vegetation` - Boolean  
+
+# 0 Prepare workspace & load packages
+```{r setup, results = 'hide', warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+libs <- c("tidyverse",
+          "tidyselect",
+          "readxl",
+          "foreign",
+          "Taxonstand",
+          "pbapply",
+          "kableExtra",
+          "openxlsx")
+
+invisible(lapply(libs, library, character.only = TRUE))
+
+input_path <- "../Data/Rawdata"
+temp_path <- "../Data/Intermediate-steps"
+output_path <- "../Data/Output-data"
+
+#check if paths exist
+
+dir.exists(c(input_path, temp_path, output_path))
+
+```
+
+# 1.Import the digitized rawdata
+Relevé tables from the Transecta were scanned, and submitted to a text recognition software. After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
+```{r, warning = FALSE, message = FALSE}
+input_file <- "Rawdata-Transecta-Patagonia-v03-2023.xlsx"
+
+input_sheets <- file.path(input_path, input_file)
+
+#read all digital tables from excel file, column names set to False -> 
+#to avoid first sheet row as column names 
+sheets <- readxl::excel_sheets(file.path(input_path, input_file))
+lst <- lapply(sheets, function(sheet) 
+  readxl::read_excel(input_sheets, sheet = sheet, col_names = F)
+)
+names(lst) <- sheets
+```
+
+## 1.1 Tables to longformat
+
+The plot nr. might not be unique every time, therefore, we created a `PlotID` as the combination of table nr., group nr., and plot nr.
+
+```{r}
+#function to add 'group' column if it doesn't exist
+clean_table <- function(x) {
+  #fill empty values in group with NA, if any
+  if(sum(x$`...1` == "group", na.rm = TRUE) == 0) {
+    x <- x |>  
+      mutate(across(.fns = as.character)) |>
+      bind_rows(as.data.frame(matrix(c("group", "Group", rep("NA", ncol(x)-2)), 
+                                     nrow = 1, 
+                                     ncol = ncol(x), 
+                                     dimnames = list(NA, colnames(x)))))
+  }
+  
+  x |> 
+    mutate(across(.fns = as.character)) |>  
+    filter(`...1` %in% c("group", "plot", "sp")) |>
+    #select_if(function(x) !(all(is.na(x)) | all(x==""))) |>
+    
+    #create unique plot ID with g group number_ p plot number
+    ({\(.) `colnames<-`(x = ., 
+                        value = paste("g",  
+                                      .[which(.$`...1` == "group"), ], 
+                                      "_", 
+                                      "p",  
+                                      .[which(.$`...1` == "plot" ), ],
+                                      sep="")
+    )
+    })() |>
+    rename(tag = "ggroup_pplot", 
+           Species = `gGroup_pRelevee No`) |>
+    #select only group and plot values form dataset
+    filter(! tag %in% c("group", "plot")) |> 
+    dplyr::select(-tag) |> 
+    #bring tables to long format
+    pivot_longer(-Species, names_to = "plot", values_to = "abundance") |> 
+    #remove entries where species was not present in plot
+    filter(!is.na(abundance)) |> 
+    dplyr::select(plot, species = Species,abundance) 
+}
+
+#apply function across the list to get unique plot IDs and each table to long format
+table_list <- lapply(lst[-1], clean_table) #the first one will be ignored, as it is the metadata
+
+```
+
+## 1.2 Bind all tables into one and clean some typos in the species names
+Bind all tables below each other and clean species names from typos and abbreviations
+```{r}
+df <- bind_rows(table_list, .id = "table_nr") |> 
+  mutate(table_nr = str_extract(table_nr, "[0-9]+")) |> 
+  mutate(old_species = species) |> 
+  mutate(species = gsub("Abrotanella lineaifolia", "Abrotanella linearifolia", species)) |> 
+  mutate(species = gsub("Abrotanella linearif\\.", "Abrotanella linearifolia", species)) |>
+  mutate(species = gsub("Abrotanella linearifolialia", "Abrotanella linearifolia", species)) |>
+  mutate(species = gsub("Acaeha platyacantha", "Acaena platyacantha", species)) |>
+  mutate(species = gsub("Acaena platyacantha", "Acaena platyacantha", species)) |>
+  mutate(species = gsub("Acaena platyacanthra", "Acaena platyacantha", species)) |>
+  mutate(species = gsub("Adesmia boronioidas", "Adesmia boronioides", species)) |>
+  mutate(species = gsub("Adessia pumila", "Adesmia pumila", species)) |>
+  mutate(species = gsub("Adesmia lotoid'es", "Adesmia lotoides", species)) |>
+  mutate(species = gsub("Agoseris coronopifolia", "Agoseris coronapifolia", species)) |>
+  mutate(species = gsub("Agrostis philipp\\.", "Agrostis philippiana", species)) |>
+  mutate(species = gsub("Aira caryophylíeá", "Aira caryophyllea", species)) |>
+  mutate(species = gsub("Alopecuros magellanicus", "Alopecurus magellanicus", species)) |>
+  mutate(species = gsub("Alstromeria patagonica", "Alstroemeria patagonica", species)) |>
+  mutate(species = gsub("Andreasea sp\\.", "Andreaea sp\\.", species)) |>
+  mutate(species = gsub("Anegallia alternifolia", "Anagallis alternifolia", species)) |>
+  mutate(species = gsub("Anarthroph\\. Desider\\. V\\. moren\\.", "anarthrophyllum desideratum var\\. morensis", species)) |> 
+  mutate(species = gsub("Anntenaria chil\\. magell\\.", "Antennaria chilensis var\\. magellanica", species)) |>
+  mutate(species = gsub("Antennaria chilen\\. V\\. magell\\.", "Antennaria chilensis var\\. magellanica", species)) |>
+  mutate(species = gsub("Armeria marit\\. Ssp\\. And\\.", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria marit\\. Ssp\\. andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armenia maritima ssp* andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria marit\\. Ssp\\. Andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria maritima ssp\\. and\\.", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria maritima ssp\\. And\\.", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria maritima ssp\\. Andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Arrneria maritima ssp\\. Andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armenia maritima ssp* andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria maritima ssp\\. andinana", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armeria maritima ssp\\. andinanana", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armenia maritima subsp\\. andina", "Armeria maritima ssp\\. andina", species)) |>
+  mutate(species = gsub("Armenia ma", "Armeria ma", species)) |>
+  mutate(species = gsub("Asplenium dareoides", "Asplenium dereoides", species)) |>
+  mutate(species = gsub("Agrostis philippianaana", "Agrostis philippiana", species)) |>
+  mutate(species = gsub("Aster vahii (tg)", "Aster vahlii (tg)", species)) |>
+  mutate(species = gsub("Azorella caespitosa", "Azorella caepitosa", species)) |>
+  mutate(species = gsub("Azorella trifúrcate", "Azorella trifurcata", species)) |> 
+  mutate(species = gsub("Baccharis ptagonica", "Baccharis patagonica", species)) |>
+  mutate(species = gsub("Baccharis patagónica", "Baccharis patagonica", species)) |>
+  mutate(species = gsub("Berberis buxifoíia", "Berberis buxifolia", species)) |>
+  mutate(species = gsub("Berberís buxifolia", "Berberis buxifolia", species)) |>
+  mutate(species = gsub("Blechnum magallanicum", "Blechnum magellanicum", species)) |>
+  mutate(species = gsub("Blechnum pennea-marina", "Blechnum penna-marina", species)) |>
+  mutate(species = gsub("Blechnun penna-marina", "Blechnum penna-marina", species)) |>
+  mutate(species = gsub("Bolax gummiferae", "Bolax gummifera", species)) |>
+  mutate(species = gsub("Bromus setif\\. Brevif\\.|Bromus setif\\. var\\. brevif\\.", "Bromus setifolius var\\. brevifolius", species)) |>
+  mutate(species = gsub("Bromus setif\\.v\\.brevif\\.", "Bromus setifolius var\\. brevifolius", species)) |>
+  mutate(species = gsub("Bromus catharti", "Bromus catharticus", species)) |>
+  mutate(species = gsub("Bryum pseudotrichetrum","Bryum pseudotriquetrum",  species)) |>
+  mutate(species = gsub("Calceolaria palenau", "Calceolaria palenae", species)) |>
+  mutate(species = gsub("Caltha dionefolia", "Caltha dionaefolia", species)) |>
+  mutate(species = gsub("Caltha dioneifolia", "Caltha dionaefolia", species)) |>
+  mutate(species = gsub("Caltha dionexfolia", "Caltha dionaefolia", species)) |>
+  mutate(species = gsub("Cardamina glacialis", "Cardamine glacialis", species)) |>
+  mutate(species = gsub("Carex andina v\\. subabs\\.|Carex and\\. subabsc\\.|Carex andina v\\. subabs|Carex and\\. Var\\. subabscan\\.|Carex andina v\\. subabsc\\.|Carex andina var\\. subabsc\\.|Carex andina v\\. sub\\.\\.|Carex andina v\\. sub\\.", "Carex andina var\\. subabscondita", species)) |>
+  mutate(species = gsub("Carex magellanicum", "Carex magellanica", species)) |>
+  mutate(species = gsub("Carex patagónica", "Carex patagonica", species)) |>
+  mutate(species = gsub("Cerastium avensa", "Cerastium arvense", species)) |>
+  mutate(species = gsub("Cerastium font\\. ssp\\. triv\\.|Cerastium font\\. ssp\\.triviale|Cerastium font\\. Trivial\\.|Cerastium fontanum ssp\\. Triv\\.|Cerastium fontanum ssp\\. Triviale|Cerastium font\\. ssp\\. triv\\.ale", "Cerastium fontanum subsp\\. triviale", species)) |>
+  mutate(species = gsub("Chilotrichum diffusum", "Chiliotrichum diffusum", species)) |>
+  mutate(species = gsub("Colobathus subulatus", "Colobanthus subulatus", species)) |>
+  mutate(species = gsub("Colobanthas subulatus", "Colobanthus subulatus", species)) |>
+  mutate(species = gsub("Cortadoria pilosa", "Cortaderia pilosas", species)) |>
+  mutate(species = gsub("Cryptochila grandifl\\.", "Cryptochila grandiflora", species)) |>
+  mutate(species = gsub("Cryptochila grandiflorara", "Cryptochila grandiflora", species)) |>
+  mutate(species = gsub("Cortaderia pilosas", "Cortaderia pilosa", species)) |>
+  mutate(species = gsub("Deschampsia fleruosa", "Deschampsia flexuosa", species)) |>
+  mutate(species = gsub("Deschampsia flexuosá", "Deschampsia flexuosa", species)) |>
+  mutate(species = gsub("Desfontainia spinosa", "Desfontainea spinosa", species)) |>
+  mutate(species = gsub("Deyauxia poaeoides", "Deyeuxia poaeoides", species)) |>
+  mutate(species = gsub("Donata fascicularis", "Donatia fascicularis", species)) |>
+  mutate(species = gsub("Donatia fascicularia", "Donatia fascicularis", species)) |>
+  mutate(species = gsub("Draba australis v\\. amegh\\.", "Draba australis v\\. ameghinoi", species)) |>
+  mutate(species = gsub("Draba australis v\\. ameghinoinoi", "Draba australis v\\. ameghinoi", species)) |>
+  mutate(species = gsub("Draba magellanica\\.", "Draba magellanica", species)) |>
+  mutate(species = gsub("Drymis winteri", "Drimys winteri", species)) |>
+  mutate(species = gsub("Empetrom rubrum", "Empetrum rubrum", species)) |>
+  mutate(species = gsub("Erigaron myosotis", "Erigeron myosotis", species)) |>
+  mutate(species = gsub("Escallonia alp\\. carmelit\\.|Bscallonia and\\. v\\. carmel\\.|Escallonia alpina v\\. carmelit\\.", "Escallonia alpina v\\. carmelitana", species)) |>
+  mutate(species = gsub("Bscallonia and\\.", "Escallonia andina", species)) |>
+  mutate(species = gsub("Euphorbia collina v\\. and\\.", "Euphorbia collina v\\. andina", species)) |>
+  mutate(species = gsub("Euphorbia collina v\\. andinana", "Euphorbia collina v\\. andina", species)) |>
+  mutate(species = gsub("Festuca palescens", "Festuca pallescens", species)) |>
+  mutate(species = gsub("Gallum fuegianum", "Galium fuegianum", species)) |>
+  mutate(species = gsub("Gallum aparine", "Galium aparine", species)) |>
+  mutate(species = gsub("Gleichenia quadripart\\.", "Gleichenia quadripartita", species)) |>
+  mutate(species = gsub("Gleichenia quadripartitata", "Gleichenia quadripartita", species)) |>
+  mutate(species = gsub("Hierochlbe redolens", "Hierochloe redolens", species)) |>
+  mutate(species = gsub("Hierochlöe redolens", "Hierochloe redolens", species)) |>
+  mutate(species = gsub("Hierochlöe redolens (tg)", "Hierochloe redolens (tg)", species)) |>
+  mutate(species = gsub("Hymenoph\\. secundum", "Hymenophyllum secundum", species)) |>
+  mutate(species = gsub("Huanca acaulis", "Huanaca acaulis", species)) |>
+  mutate(species = gsub("Hypochoeris incan\\. V\\. integer\\.|Hypochaeris incana v\\.integr\\.|Hypochoeris incana v\\.integr\\.", "Hypochaeris incana v\\. integrifolia", species)) |>
+  mutate(species = gsub("Hypochoeris", "Hypochaeris", species)) |>
+  mutate(species = gsub("Lebetanthus myrsinitas", "Lebetanthus myrsinites", species)) |>
+  mutate(species = gsub("Lepidophyllum cupressif\\.", "Lepidophyllum cupressiforme", species)) |>
+  mutate(species = gsub("Lepidophyllum cupressiformerme", "Lepidophyllum cupressiforme", species)) |>
+  mutate(species = gsub("Lycopodium albofii", "Lycopodium alboffii", species)) |>
+  mutate(species = gsub("Lycopodium aöboffii", "Lycopodium alboffii", species)) |>
+  mutate(species = gsub("Marsipposp\\. grandifl\\.", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsipposp\\. Grandifl\\.", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsipposp\\. Grandiflorum", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsipposper\\. grandifl\\.", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsippospermum grandifl\\.", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsippospermum grandiflorumrum", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Marsippospermum grandiflorumrumrum", "Marsippospermum grandiflorum", species)) |>
+  mutate(species = gsub("Maytenus magellanica", "Maytanus magellanica", species)) |>
+  mutate(species = gsub("Myrteola nummularis", "Myrteola nummularia", species)) |>
+  mutate(species = gsub("Nardophyllum bryoid\\.", "Nardophyllum bryoides", species)) |>
+  mutate(species = gsub("Nardophyllum bryoidess", "Nardophyllum bryoides", species)) |>
+  mutate(species = gsub("Nardophyllura bryoides", "Nardophyllum bryoides", species)) |>
+  mutate(species = gsub("Nassauvia abbreviate", "Nassauvia abbreviata", species)) |>
+  mutate(species = gsub("Nassauvia darvinii", "Nassauvia darwinii", species)) |>
+  mutate(species = gsub("Nothofagus antartica", "Nothofagus antarctica", species)) |>
+  mutate(species = gsub("Nothofagus antarct\\.", "Nothofagus antarctica", species)) |>
+  mutate(species = gsub("Omphalodina sp\\.", "Omphalodium sp\\.", species)) |>
+  mutate(species = gsub("Oreobolus obtnsangulas", "Oreobolus obtusangulus", species)) |>
+  mutate(species = gsub("Osmorrhiza chilensis", "Osmorhiza chilensis", species)) |>
+  mutate(species = gsub("Perezia recurvara", "Perezia recurvata", species)) |>
+  mutate(species = gsub("Perezia recuvata", "Perezia recurvata", species)) |>
+  mutate(species = gsub("Phacella secunda", "Phacelia secunda", species)) |>
+  mutate(species = gsub("Phaiophleps biflorar", "Phaiophleps biflora", species)) |>
+  mutate(species = gsub("Phaiophleps bifloro", "Phaiophleps biflora", species)) |>
+  mutate(species = gsub("Phaiophleps biflorus", "Phaiophleps biflora", species)) |>
+  mutate(species = gsub("Phaxophleps biflora", "Phaiophleps biflora", species)) |>
+  mutate(species = gsub("Phlaum alpinum", "Phleum alpinum", species)) |>
+  mutate(species = gsub("poa pratensis", "Poa pratensis", species)) |>
+  mutate(species = gsub("Polygala darviniana", "Polygala darwiniana", species)) |>
+  mutate(species = gsub("Racomitrius willii", "Racomitrium willii", species)) |>
+  mutate(species = gsub("Recomitrium willii", "Racomitrium willii", species)) |>
+  mutate(species = gsub("Relbunium richard\\.", "Relbunium richardianum", species)) |>
+  mutate(species = gsub("Relbunium richardianumanum", "Relbunium richardianum", species)) |>
+  mutate(species = gsub("Rumex acetoseila", "Rumex acetosella", species)) |>
+  mutate(species = gsub("Rytidosperma viresc\\. V\\. parvis\\.|Rytidosperma virescens V\\. parvis\\.|Rytidosperma virescens var\\. parvis\\.", "Rytidosperma virescens var\\. parvispiculum", species)) |>
+  mutate(species = gsub("Rytidosperma virescensns v\\. patag\\*|Rytidosperma virescens v\\. patag\\*|Rytidosp\\. víresc\\. patag\\.|Rytidosperma virescens var\\. patag", "Rytidosperma virescens var\\. patagonicum", species)) |>
+  mutate(species = gsub("Rytidosperma viresc\\.$", "Rytidosperma virescens", species)) |>
+  mutate(species = gsub("Rytidosp\\. Virescens", "Rytidosperma virescens", species)) |>
+  mutate(species = gsub("Rytidosperma virescebs", "Rytidosperma virescens", species)) |>
+  mutate(species = gsub("Rytidosperma virescensbs", "Rytidosperma virescens", species)) |>
+  mutate(species = gsub("Rytidosperma virescensns", "Rytidosperma virescens", species)) |>
+  mutate(species = gsub("Rumex aceto sella", "Rumex acetosella", species)) |>
+  mutate(species = gsub("Schoenus anarcticus", "Schoenus antarcticus", species)) |>
+  mutate(species = gsub("Schizaea fistulosa", "Schizaea fistulosa", species)) |>
+  mutate(species = gsub("Scirpus calif\\. V\\. tereticulmis", " Scirpus californicus var\\. tereticulmis", species)) |>
+  mutate(species = gsub("Scutellaria numular\\.|Scutellaria nummulariaefolia", "Scutellaria nummulariaefolia", species)) |>
+  mutate(species = gsub("Sisyrinchium aff\\. patagón\\.", "Sisyrinchium patagonicum", species)) |>
+  mutate(species = gsub("Sisyrinchium gramin\\. Ssp\\. Nanum", "Sisyrinchium graminifolium subsp\\. nanum", species)) |>
+  mutate(species = gsub("Sphagum fimbriatum", "Sphagnum fimbriatum", species)) |>
+  mutate(species = gsub("Taraxacum gielliesii", "Taraxacum gilliesii", species)) |>
+  mutate(species = gsub("Taraxacum officinales", "Taraxacum officinale", species)) |>
+  mutate(species = gsub("Taraxacum officinalis", "Taraxacum officinale", species)) |>
+  mutate(species = gsub("Thlapsi magellanica", "Thlaspi magellanica", species)) |>
+  mutate(species = gsub("Thlaspi magellanicum", "Thlaspi magellanica", species)) |>
+  mutate(species = gsub("Trifolium rapens", "Trifolium repens", species)) |>
+  mutate(species = gsub("Trifolium repans", "Trifolium repens", species)) |>
+  mutate(species = gsub("Trisetum cummin\\. V\\. sant\\.", "Trisetum cummingii var\\. santacrucense", species)) |>
+  mutate(species = gsub("Trisetum cumming\\. v\\. santacruc\\.", "Trisetum cummingii var\\. santacrucense", species)) |>
+  mutate(species = gsub("Trisetum cummingii v\\. sant\\.|Trisetum cummingii var\\. santacr\\.", "Trisetum cummingii var\\. santacrucense", species)) |>
+  mutate(species = gsub("Trisetum cummingli", "Trisetum cummingii", species)) |>
+  mutate(species = gsub("Tristeum cummingii", "Trisetum cummingii", species)) |>
+  mutate(species = gsub("UnCinia macrolepis", "Uncinia macrolepis", species)) |>
+  mutate(species = gsub("Uncinia macrolopis", "Uncinia macrolepis", species)) |>
+  mutate(species = gsub("Verbana ff\\. prichardii", "Verbena aff\\. prichardii", species)) |>
+  mutate(species = gsub("Verbena aff\\. Prichardii", "Verbena aff\\. prichardii", species)) |>
+  mutate(species = gsub("Verbana o'donelli", "Verbena o'donelli", species)) |>
+  mutate(species = gsub("Verbena o denellii", "Verbena o'donelli", species)) |>
+  mutate(species = gsub("Verbena o´denellii", "Verbena o'donelli", species)) |>
+  mutate(species = gsub("Verbena amaghinoi", "Verbena ameghinoi", species)) |>
+  mutate(species = gsub("Verbana ", "Verbena ", species)) |>
+  mutate(species = gsub("Verónica serpyllifolia", "Veronica serpyllifolia", species)) |>
+  mutate(species = gsub("Vicia magellanicum", "Vicia magellanica", species)) |>
+  mutate(species = gsub("Vicia magellanicum", "Vicia magellanica", species)) |>
+  mutate(species = gsub("Viola magellanmica", "Viola magellanica", species)) |> 
+  mutate(species = gsub("H\\. ferrugineum", "Hymenophyllum ferrugineum", species)) |> 
+  mutate(species = gsub("N\\. antarctica|Nothofagus antarcticaca", "Nothofagus antarctica", species)) |> 
+  mutate(species = gsub("Carex gayana var\\. gavana", "Carex gayana var\\. gayana", species)) |> 
+  mutate(species = gsub("Poa atropidiformis v\\. patag\\.", "Poa atropidiformis var\\. patagonica", species)) |> 
+  mutate(species = gsub("Puccinellia glauscescens v\\. osten\\.", "Puccinellia glaucescens var\\. osteniana", species)) |> 
+  mutate(species = gsub("Carpha alpina v\\. schoen\\.", "Carpha alpina var\\. schoenoides", species)) |> 
+  mutate(species = gsub("Viola maculata v\\. microphylíos", "Viola maculata subsp\\. microphyllos", species)) |> 
+  mutate(species = gsub("Cystopteris fragilis apiif\\.", "Cystopteris fragilis var\\. apiiformis", species)) |> 
+  mutate(species = gsub("Luzula chil\\. frequent\\." ,  "Luzula chilensis f\\. frequentior", species)) |> 
+  mutate(species = gsub("Ranunculus pedunc\\. erod\\.","Ranunculus peduncularis", species)) |> 
+  mutate(species = gsub("Agropyron fueg\\. chaetoph\\.","Agropyron fuegianum var\\. chaetophorum", species)) |> 
+  mutate(species = gsub("Cerastium font\\. subsp\\. triv\\.","Cerastium fontanum subsp\\. triviale", species)) |> 
+  mutate(species = gsub("Uncinia brevic\\. maclov\\.","Uncinia brevicaulis var\\. macloviana", species)) |> 
+  mutate(species = gsub("Dendroligotrichum dendr\\.","Dendroligotrichum dendroides", species)) |>
+  mutate(species = gsub("Dicranoloma billard\\.","Dicranoloma billardierei", species)) |> 
+  mutate(species = gsub("Bymenoph\\. Magellanicum","Hymenophyllum magellanicum", species)) |> 
+  mutate(species = gsub("Scutellaria nummulariaefolia","Scutellaria nummulariifolia", species)) |> 
+  mutate(species = gsub("Astragalus aff\\. Patag\\.","Astragalus aff\\. patagonicus", species)) |> 
+  mutate(species = gsub("Lathyrus magell\\. V\\. glausc\\.","Lathyrus magellanicus var\\. glauscecens", species)) |> 
+  mutate(species = gsub("Bryum pseudotrichetrum","Bryum pseudotriquetrum", species)) |> 
+  mutate(species = gsub("Triglochin palastre","Triglochin palustris", species)) |> 
+  mutate(species = gsub("Riccardia gergensis","Riccardia georgiensis", species)) |> 
+  mutate(species = gsub("Agrestis flavidula","Agrostis flavidula", species)) |> 
+  mutate(species = gsub("Rhaphidorrhynchium scorp\\.","Rhaphidorrhynchium scorpiurus", species)) |> 
+  mutate(species = gsub("Gaultheria phyllyr\\.","Gaultheria phillyreifolia", species)) |> 
+  mutate(species = gsub("Caltha dionaefolia","Caltha dioneifolia", species)) |> 
+  mutate(species = gsub("Marsippospermum grandiflorumrum","Marsippospermum grandiflorum", species)) |> 
+  mutate(species = gsub("Hieracium anarc\\. var\\. myosot\\.|Hieracium anarc\\. V\\. myosot.","Hieracium antarcticum var\\. myosotidifolium", species)) |> 
+  mutate(species = gsub("Uncinia lechleriana var\\. trich\\.","Uncinia lechleriana var\\. triquetra", species)) |> 
+  mutate(species = gsub("Senecio aff\\. tricuspid\\.","Senecio aff\\. tricuspidatus", species)) |> 
+  mutate(species = gsub("Chlorea magellanica","Chloraea magellanica", species)) |> 
+  mutate(species = gsub("Ranunculus minutifl\\.","Ranunculus minutiflorus", species)) |> 
+  mutate(species = gsub("Ranunculus aff\\. maclov s","Ranunculus aff\\. maclovianus", species)) |> 
+  mutate(species = gsub("Arenaria serpens v\\.andícola","	Arenaria serpens v\\. andicola", species)) |> 
+  mutate(species = gsub("Leucheria hahni v\\. lanata","Leucheria hahnii v\\. lanata", species)) |> 
+  mutate(species = gsub("Agropyrum patagonicum","Agropyron patagonicum", species)) |> 
+  mutate(species = gsub("Nassuavia ameghinoi","Nassauvia ameghinoi", species)) |> 
+  mutate(species = gsub("Descurain\\. Antarc\\. V\\. patag\\.","Descurainia antarctica var\\. patagonica", species)) |> 
+  mutate(species = gsub("Astragalus aff\\. Patag\\.","	Astragalus aff\\. patagonicus", species)) |> 
+  mutate(species = gsub("Carex suband\\. V\\. subabs\\.|Carex suband\\. var\\. subabs\\.","Carex subandina var\\. subabscondita", species)) |> 
+  mutate(species = gsub("Bromus catharticuscus","Bromus catharticus", species)) |> 
+  mutate(species = gsub("Nardophyll\\. obtusifolium","Nardophyllum obtusifolium", species)) |> 
+  mutate(species = gsub("Cornicularia aculeata","Cetraria aculeata", species)) |> 
+  mutate(species = gsub("Leuchena purpurea","Leucheria purpurea", species)) |> 
+  mutate(species = gsub("Euphorbia collina var\\.glausc\\.","Euphorbia collina var\\. glaucescens", species)) |> 
+  mutate(species = gsub("Ryzocarpon geograph\\.","Rhizocarpon geographicum", species)) |> 
+  mutate(species = gsub("Ochroleggia","Ochrolechia", species)) |> 
+  mutate(species = gsub("Sisrynchium junceum","Sisyrinchium junceum", species)) |> 
+  mutate(species = gsub("Ranunculus minutifl\\.","Ranunculus minutiflorus", species)) |> 
+  mutate(species = gsub("Samolusthulatus","Samolus spathulatus", species)) |> 
+  mutate(species = gsub("S. speciosa, S. amegh. Y S. chrysophylla", "Sophora spec.", species)) |>
+  mutate(species = gsub("Orthechna rariflora", "Orthachne rariflora", species)) |>
+  mutate(species = gsub("HymenophyIlu", "Hymenophyllum", species)) |>
+  mutate(species = gsub("Scuterllaria num", "Scutellaria nummulariifolia", species)) |>  
+  mutate(species = gsub("Hordeum haloph. pubigl.", "Hordeum halophilum", species)) |>  
+  mutate(species = gsub("Bromus setif. Var. brevif.", "Bromus setififolius var. brevifolius", species)) |>    
+  #delete some wrong species info
+  filter(!str_detect(species, pattern = "Estrato"))
+```
+
+## 1.3 Remove tags and intraspecific markers from species name
+Some species names contain tags, or intraspecific markers. These are extracted and stored in a separate column. 
+```{r, warning = FALSE}
+#extract all tags in parenthesis
+tags <- regmatches(df$species, gregexpr( "(?<=\\().+?(?=\\))", df$species, perl = TRUE))
+tags <- sapply(tags, function(x){ifelse(length(x) > 0, x, NA)})
+
+#create list of tags (e.g., "(tg)") separated by | (=OR)
+tag_list <- df |>  
+  mutate(species = gsub(' \\(|\\.\\(', '---\\(', species)) |>
+  separate(species, into = c("species", "tag"), sep = "---") |>
+  filter(!is.na(tag)) |>
+  pull(tag) |>
+  unique() |>
+  str_replace(pattern = "\\.", replacement = "\\\\.") |>
+  str_replace(pattern = "\\(", replacement = "\\\\(") |>
+  str_replace(pattern = "\\)", replacement = "\\\\)") |>
+  str_replace(pattern = "\\?", replacement = "\\\\?") |>
+  paste(collapse = "$|")
+
+#delete tags from species names and create new field 'note'
+df <- df |> 
+  mutate(species = str_remove(string = species, pattern = tag_list)) |> 
+  mutate(species.tags = tags)
+
+#clean from special characters and harmonize use of infraspecific markers
+df <- df |> 
+  mutate(species = str_replace(species, pattern = "ssp\\.|ssp ", replacement = "subsp\\. ")) |>
+  mutate(species = str_replace(species, pattern = "  ", replacement = " ")) |>
+  mutate(species = str_replace(species, pattern = "^ | $", replacement = "")) |>
+  mutate(species = str_replace(species, pattern = "\\*", replacement = "")) |>
+  mutate(species = str_replace(species, pattern = " v. | V. ", replacement = " var. ")) |>
+  mutate(species = str_replace(species, pattern = " sp\\.$| sp$", replacement = "")) |>
+  mutate(species = str_replace(species, pattern = " *", replacement = " ")) |> 
+  mutate(species = str_replace(species, pattern = "^ | $", replacement = ""))
+
+```
+
+# 2. Check species names
+
+## 2.1 Compare species list with the Argentinian checklist
+Import the Argentinian checklist and filter all the species which are not present in the checklist to proceed with the next check.
+
+```{r}
+#import Argentinian checklist
+checklist <- read_excel(file.path(input_path, "Species-Checklist-Argentina-v09-2020.xlsx"), sheet = 1)
+
+#check which names in input table ARE NOT in the checklist
+tocheck <- df |> 
+  dplyr::select(species) |>
+  distinct(species) |>
+  filter(!species %in% checklist$ABBREVIAT) |>
+  pull(species) |> 
+  unique() 
+
+```
+
+The data contains `r length(unique(df$species))` species, `r length(tocheck)` species are not part of the Argentinian checklist and will be checked in the next step.
+
+## 2.2 Checked species not in the Argentinian checklist based on The Plant List
+
+```{r, warning = FALSE, error = FALSE, eval = FALSE}
+checked <- TPL(tocheck)
+#show 5 random rows of TPL's output
+checked |> 
+  slice_sample(n = 5) |> 
+  kbl() |> 
+  kable_classic()
+
+#save mid-output for future reproducibility
+save(checked, file = file.path(temp_path, "TPL-Species-Check-v04-2023.RData"))
+```
+Reload output
+```{r}
+load(file.path(temp_path, "TPL-Species-Check-v04-2023.RData"))
+```
+
+
+
+Depending on the taxonomic status of the checked species (taxon) we need to proceed in different ways to include the species into the Argentinian checklist. But, first we get the new name of each taxon by combining the new genus, hybrid marker, species and rank.
+
+```{r}
+checked2 <- checked |> 
+  replace_na(list(New.Genus = "", 
+                  New.Hybrid.marker = "", 
+                  New.Species = "", 
+                  New.Infraspecific.rank = "", 
+                  New.Infraspecific = "")) |> 
+  #mutate(oldname = Taxon) |> 
+  rowwise() |> 
+  mutate(newname=paste(New.Genus, 
+                       New.Hybrid.marker, 
+                       New.Species, 
+                       New.Infraspecific.rank, 
+                       New.Infraspecific)) |> 
+  ungroup() |> 
+  mutate(newname = str_squish(newname))
+
+#show 5 random rows of output
+checked2 |> 
+  slice_sample(n = 5) |>
+  select(Taxon, newname, Hybrid.marker:Typo) |> 
+  kbl() |> 
+  kable_classic()
+```
+
+### 2.2.1 Accepted species
+Check the species names resolved in TPL against the Argentinian checklist. These will be excluded from the next steps, as they do not need additional attention.
+```{r}
+accepted <- checked2 |> 
+  filter(Taxonomic.status == "Accepted") |>  
+  #some of these species might already be in the checklist -> exclude
+  filter(!newname %in% checklist$ABBREVIAT) |> 
+  dplyr::select(oldname = Taxon, ABBREVIAT = newname)
+
+```
+There are `r nrow(accepted)` species, which were already in the Argentinian checklist.
+
+### 2.2.2 Synonyms
+Identify the species names being synonyms of accepted names. These names will be compared with the checklist to check whether the accepted names are already included.
+```{r, warning = FALSE}
+tosynonyms <- checked2 |> 
+  filter(Taxonomic.status == "Synonym") |>  
+  dplyr::select(oldname = Taxon, newname)
+```
+There are `r nrow(tosynonyms)` species which are considered synonyms by TPL.
+
+
+### 2.2.3 Unresolved/unmatched
+Create list of unresolved or unmatched species. These species will be checked manually and eventually added to the checklist to allow import to Turboveg 2
+```{r}
+unres <- checked2 |> 
+  filter(!Taxonomic.status %in% c("Accepted", "Synonym")) |> 
+  #some of these species might already be in the checklist -> exclude
+  filter(!newname %in% checklist$ABBREVIAT) |> 
+  dplyr::select(oldname = Taxon, ABBREVIAT = newname)
+
+#show five random rows of unresolved names
+unres |>
+  slice_sample(n = 5) |>
+  kbl() |> 
+  kable_classic()
+```
+
+There are `r nrow(unres)` species, which could not be resolved by TPL.  
+
+We export the unresolved species to tag them, e.g. lichens and add a column of the matching level, i.e. whether a taxonomic names was matched at the species, genus, family level, or remains unknown. In this way, we don't exclude any information, but unresolved names, and non vascular plant species can be excluded by the data user, if needed. 
+
+```{r}
+write.csv(unres, file.path(temp_path, "Unresolved-Species-v04-2023.csv"))
+```
+
+```{r}
+unres.tag <- read.csv(file.path(temp_path, "Unresolved-Species-Tagged-v04-2023.csv"))
+```
+
+In total we have `r nrow(unres)` unresolved species. `r unres.tag |> filter(LEVEL == "SPECIES") |> pull(LEVEL) |> length()` are expected to be correct at the species level. `r unres.tag |> filter(LEVEL == "GENUS") |> pull(LEVEL) |> length()` are correct at the genus level. `r unres.tag |> filter(LEVEL == "UNKNOWN") |> pull(LEVEL) |> length()` remain unknown. `r unres.tag |> filter(TAG == "Lichen") |> pull(LEVEL) |> length()` were tagged as lichens. `r unres.tag |> filter(TAG == "Moss") |> pull(LEVEL) |> length()` were tagged as moss. `r unres.tag |> filter(TAG == "Fungi") |> pull(LEVEL) |> length()` were tagged as fungi. `r unres.tag |> filter(TAG == "Algae") |> pull(LEVEL) |> length()` were tagged as algae. `r unres.tag |> filter(TAG == "Fern") |> pull(LEVEL) |> length()` were tagged as fern.  
+The file `unresolved_species-tagged.csv` is printed in Appendix 1.
+
+
+```{r}
+unres.tag |> 
+  select(-X) |> 
+  kbl() |> 
+  kable_classic()
+```
+
+## 2.3 Create final checklist to import data to Turboveg 2
+Add new accepted species names to checklist, check whether taxonomic names identified as synonyms have the corresponding accepted name in the Argentinian checklist, and add the new accepted names if this is not the case. Add unresolved names to the checklist. 
+```{r, warning = FALSE}
+checklist <- checklist |> 
+  bind_rows(accepted |> 
+              distinct(ABBREVIAT) |> 
+              mutate(VALID_NR = nrow(checklist) + 1:n(), 
+                     SPECIES_NR = nrow(checklist) + 1:n(), 
+                     SYNONYM = FALSE) #45
+  )
+
+#update checklist with synonym
+validnr <- checklist$VALID_NR[match(tosynonyms$newname, checklist$ABBREVIAT)]
+checklist <- checklist |> 
+  bind_rows(tosynonyms |> 
+              dplyr::select(ABBREVIAT = newname) |> 
+              data.frame(SPECIES_NR = nrow(checklist) + 1:nrow(tosynonyms), 
+                         VALID_NR = validnr, 
+                         SYNONYM = TRUE) |> 
+              #some of the synonyms from TPL are not in the Argentinian checklist
+              mutate(SYNONYM = ifelse(is.na(VALID_NR), FALSE, SYNONYM)))
+      #if the synonyms are not in the Argentina Checklist the Valid_Nr is equal the species NR
+
+for (i in 1:nrow(checklist)) {
+  if (is.na(checklist[i, "VALID_NR"]) && checklist$SYNONYM == FALSE) {
+    checklist[i, "VALID_NR"] <- checklist[i, "SPECIES_NR"]
+  }
+}
+
+
+#update checklist with unresolved/unmatched species names
+checklist <- checklist |> 
+  bind_rows(unres.tag |> 
+              dplyr::select(-c(X, oldname)) |> 
+              mutate(VALID_NR = nrow(checklist) + 1:n(), 
+                     SPECIES_NR = nrow(checklist) + 1:n(), 
+                     SYNONYM = FALSE)  
+  )
+
+```
+
+
+Clear checklist from empty `Abbreviat` and check for duplicates
+```{r}
+
+for (i in 1:nrow(checklist)) {
+  x <- as.numeric(nchar(checklist[i, "ABBREVIAT"]), keepNA = FALSE)
+  if (x <= 2) {
+    y <- c(y, i)
+  }
+}
+
+#check for duplicates in the checklist
+n_occur <- data.frame(table(checklist$ABBREVIAT))
+n_occur[n_occur$Freq > 1, ] |> 
+  kbl() |> 
+  kable_classic()
+
+```
+
+`r n_occur[n_occur$Freq > 1,] |> nrow()` species are duplicates. These are deleted.
+```{r, warning=F}
+checklist <- checklist[!duplicated(checklist$ABBREVIAT) && checklist$SYNONYM == FALSE, ]
+```
+
+## 2.4 Adjustment of the species data
+Replace the old species names with the new one from TPL. Clean species data before export.
+
+```{r}
+df.out <- df |> 
+  mutate(Taxon_group = "Vascular Plant") |> #default
+  left_join(checked2 |> 
+              filter(!(Taxon %in% unres.tag$oldname)) |>
+              dplyr::select(species = Taxon, species_tpl = newname) |> 
+              bind_rows(unres.tag |> 
+                          select(species = oldname,
+                                species_tpl = ABBREVIAT,
+                                 TAG, LEVEL)), 
+            by = "species") |>
+  #create column taxon group, and fill up empty fields (default = species)
+  mutate(TAG = replace(TAG, 
+                     list = TAG == "", 
+                     values = NA)) |>
+  mutate(Taxon_group = coalesce(TAG, Taxon_group)) |>
+  mutate(Taxon_group = replace(Taxon_group, 
+                             list = LEVEL == "UNKNOWN", 
+                             values = "Unknown")) |>
+  #fix match level column
+  mutate(LEVEL = str_to_title(tolower(LEVEL))) |>
+  mutate(Level2 = "Species") |>
+  mutate(LEVEL = coalesce(LEVEL, Level2)) |>
+  dplyr::select(-Level2) |>
+  #create column of standardized species names
+  mutate(species_tpl = ifelse(species_tpl == "", NA, species_tpl)) |> 
+  mutate(species = coalesce(species_tpl, species)) |>
+  dplyr::select(-species_tpl) |> 
+  #revise and clean PlotIDs
+  rowwise() |> 
+  mutate(table_nr = paste0("t", table_nr, "_")) |> 
+  ungroup() |> 
+  unite("PlotID", table_nr , plot, sep = "") |> 
+  #standardize species names
+  rename(Species = species, 
+         Abundance = abundance, 
+         Original_species = old_species,
+         Species_abbr = species.tags,
+         Tag = TAG,
+         Match_level = LEVEL) |> 
+  #there are some invalid entries in Abundance
+  #replace (P = Plantulas with +) and add the info in the note column
+  mutate(Note = NA) |> 
+  mutate(Note = replace(Note,
+                      list = Abundance == "P",
+                      values = "plántulas")) |> 
+  mutate(Abundance = replace(Abundance,
+                           list = Abundance == "P", 
+                           values = "+")) |> 
+  #correct typo 4-  --> + [Checked in original table]
+  mutate(Abundance = replace(Abundance,
+                           list = Abundance == "4-", 
+                           values = "+")) |>   #checked in original table
+  #change R to r 
+  mutate(Abundance = replace(Abundance,
+                           list = Abundance == "R", 
+                           values = "r")) |>  
+  #change re (renoval) to + and add info in the note column
+  mutate(Note = replace(Note,
+                    list = Abundance == "re",
+                    values = "renoval")) |>
+  mutate(Note = coalesce(Species_abbr, Note)) |>
+  dplyr::select(-Species_abbr) |>
+  mutate(Abundance = replace(Abundance,
+                           list = Abundance == "re", 
+                           values = "+")) |>  
+  #delete all entries with "-" [which shouldn't be there]
+  filter(Abundance != "-") |> 
+  mutate(Abundance = factor(Abundance)) |>
+  dplyr::select(-Tag) |>
+  relocate(Taxon_group, .after = Species)
+```
+
+## 2.5 Export
+
+```{r, warning = FALSE}
+openxlsx::write.xlsx(df.out, file = file.path(output_path, "DT-Transecta-Patagonia-v04-2023.xlsx"))
+openxlsx::write.xlsx(checklist, file = file.path(output_path, "Species-Transecta-Patagonia-v04-2023.xlsx"))
+```
+
+# 3. Create Header
+## 3.1 Extract additional plot-level information
+Analogue to the function to extract the species abundance data from the spreadsheets.
+
+```{r}
+#define function to extract info from spreadsheets
+get_comments <- function(x) {
+  x <- x |> 
+    mutate(across(.fns = as.character))
+  #mark plots without group number
+  if(sum(x$`...1` == "group", na.rm = TRUE) == 0) {
+    x <- x |> 
+      bind_rows(as.data.frame(matrix(c("group", "Group", rep("NA", ncol(x) - 2)), 
+                                     nrow = 1, 
+                                     ncol = ncol(x), 
+                                     dimnames = list(NA, colnames(x)))))
+  }
+  #create date row if missing
+  if(sum(x$`...1` == "date", na.rm = TRUE) == 0) { 
+    x <- x |> 
+      bind_rows(as.data.frame(matrix(c("date", rep("NA", ncol(x) - 1)), 
+                                     nrow = 1, 
+                                     ncol = ncol(x), 
+                                     dimnames = list(NA, colnames(x))))) 
+  }
+  #extract dates
+  mydates <- x |> 
+    filter(`...1` %in% c("group", "plot" , "date", "sp")) |>
+    #create unique plot ID with g group number_ p plot number
+    ({\(.) `colnames<-`(x = ., value = paste("g",  
+                                             .[which(.$`...1` == "group"), ], 
+                                             "_", 
+                                             "p",  
+                                             .[which(.$`...1` == "plot" ), ],  sep = "")) })() |>
+    rename(tag = "ggroup_pplot", 
+           Variable = `gGroup_pRelevee No`) |> 
+    filter(tag == "date") |> 
+    dplyr::select(-tag) |> 
+    pivot_longer(-Variable, 
+                 names_to = "plot", 
+                 values_to = "date")
+  
+  myothers <- x |> #extract all with category other
+    filter(`...1` %in% c("group", "plot" , "other", "sp")) |>
+    #create unique plot ID with g group number_ p plot number
+    ({\(.) `colnames<-`(x = ., value = paste("g",  
+                                             .[which(.$`...1` == "group"), ], 
+                                             "_", 
+                                             "p",  
+                                             .[which(.$`...1` == "plot" ), ],  sep = "")) })() |>
+    rename(tag = "ggroup_pplot", 
+           Variable = `gGroup_pRelevee No`) |> 
+    filter(tag == "other") |> 
+    dplyr::select(-tag) |> 
+    pivot_longer(-Variable, 
+                 names_to = "plot", 
+                 values_to = "other")
+  # extract all cover values
+  mycovers <- x |> 
+    filter(`...1` %in% c("group", "plot" , "cover", "sp")) |>
+    # create unique plot ID with g group number_ p plot number
+    ({\(.) `colnames<-`(x = ., value = paste("g",  
+                                             .[which(.$`...1` == "group"), ], 
+                                             "_", 
+                                             "p",  
+                                             .[which(.$`...1` == "plot" ), ],  sep = "")) })() |>
+    rename(tag = "ggroup_pplot", 
+           Variable = `gGroup_pRelevee No`) |> 
+    filter(tag == "cover") |> 
+    dplyr::select(-tag) |> 
+    pivot_longer(-Variable, 
+                 names_to = "plot", 
+                 values_to = "cover")
+  
+  mylocations <- x |>  #extract all locations
+    filter(`...1` %in% c("group", "plot" , "location", "sp")) |> 
+    #create unique plot ID with g group number_ p plot number
+    ({\(.) `colnames<-`(x = ., value = paste("g",  
+                                             .[which(.$`...1` == "group"), ], 
+                                             "_", 
+                                             "p",  
+                                             .[which(.$`...1` == "plot" ), ],  sep = "")) })() |>
+    rename(tag = "ggroup_pplot", 
+           Variable = `gGroup_pRelevee No`) |> 
+    filter(tag =="location") |> 
+    dplyr::select(-tag) |>  
+    pivot_longer(-Variable, 
+                 names_to = "plot", 
+                 values_to = "value")
+  #bind all additional values below each other
+  out <- mydates |>  
+    bind_rows(myothers) |> 
+    bind_rows(mycovers) |> 
+    bind_rows(mylocations)
+  
+  return(out)
+}
+
+
+#apply function
+header_long <- lapply(lst[-1], get_comments) |> 
+  bind_rows(.id = "TableNo") 
+
+header_long$TableNo <- str_replace_all(header_long$TableNo, "TableNo", "t")
+header_long$plot <- str_remove_all(header_long$plot, "ReleveeNoMissing_gNA")
+```
+
+## 3.2 Rename variables
+
+```{r}
+header_long2 <- header_long |> 
+  mutate(Variable_standard = factor(Variable)) |>  
+  filter(!Variable %in% c("N° total de especies:", 
+                          "° total de especies;", 
+                          "No total de especies",
+                          "N° total de especies;",
+                          "Redon No", 
+                          "Distancia de la puerta en m")) |> 
+  mutate(Variable_standard = forcats::fct_collapse(Variable_standard,
+                                                 Date = c("Date of sampling", "Fecha", "date"),
+                                                 Total_vegetation_cover = c("Cobertura %", 
+                                                                            "Cobertura aprox. %", 
+                                                                            "Cobertura total %",
+                                                                            "Cobertura total (%)", 
+                                                                            "Cobertura total aprox. %", 
+                                                                            "Vobertura total %"),
+                                                 Aspect = "Orientacion", 
+                                                 Slope = c("Pendiente %", 
+                                                           "Pendiente en grados"),
+                                                 Soil_depth_cm = "Profundidad (cm)",
+                                                 Soil_depth_first_horizon_cm = c("Altura del 1er. horizonte cm", 
+                                                                                 "Altura primer horizonte cm"),
+                                                 Condition = "Estado", 
+                                                 Releve_area_m2 = c("Superficie censada en m2", 
+                                                                    "Superficie m2", 
+                                                                    "Superficie relevada m2"),
+                                                 Location = "Ubicación",
+                                                 Degraded_soil_perc = "Suelo degradado en %",
+                                                 Soil_type = c("suelo", "Suelo", "Sustrato o suelo"), 
+                                                 Environment = "Ambiente",
+                                                 Vegetation_belt = "Cinturon de vegetacion No",
+                                                 Elevation = "Altura s.n.m.", 
+                                                 Height_Tepualia_stipularis_cm = "Tepualia stipularis",
+                                                 Height_Nothofagus_antarctica_cm = "Nothofagus antarctica", 
+                                                 Height_Nothofagus_betuloides_cm = "Nothofagus betuloides", 
+                                                 Height_Pilgerodendron_uviferum_cm = "Pilgerodendron uviferum", 
+                                                 Height_Drimys_winteri_cm = "Drimys winteri",
+                                                 Height_Nothofagus_pumilio_cm = "Altura de N. pumilio (cm)",
+                                                 Height_Berberis_buxifolia_cm = "Altura de Berberis buxif.(cm)",
+                                                 Height_tree_layer_m = "Estrato arboreo (m)")) |> 
+  dplyr::select(-Variable) |> 
+  distinct() |> 
+  unite("PlotID", TableNo, plot, sep = "_", remove = TRUE) |> 
+  #mutate(value = ifelse(Variable_standard == "Date", date, value)) |> 
+  mutate(value = coalesce(value, cover, other, date)) |>
+  #convert long table to wide
+  pivot_wider(id_cols = PlotID, names_from = Variable_standard, values_from = value) |> 
+  #fix date problematic to parse
+  mutate(Date = replace(Date, 
+                      list = Date == "12.1976", 
+                      values = "01.12.1976")) |>
+  mutate(Date = lubridate::dmy(Date)) |> 
+  mutate(Date = as.character(Date)) |> 
+  filter(!str_detect(PlotID, "cont")) 
+```
+## 3.3 Export
+
+```{r}
+openxlsx::write.xlsx(header_long2, file.path(temp_path, "Header-Transecta-Patagonia-Temp-v04-2023.xlsx"))
+```
+
+# 4. Formation classification
+
+We assigned manually the Faber-Langendoen formation based on the descriptions of the vegetation data in the book while accounting for the species composition. We also assigned plots to their respective country.
+
+## 4.1 Import header data with FL classification
+Join the new fields to the header
+```{r}
+header_FL <- read_xlsx(file.path(temp_path, "Header-Transecta-Patagonia-Temp-Assign-v04-2023.xlsx"))
+header0 <- header_long2 |>
+  left_join(header_FL, 
+            by="PlotID")
+```
+
+## 4.2 Final cleaning and renaming
+Standardize column names, clean and harmonize additional information, parse additional plot-level (e.g., aspect, slope, elevation) information from relevé notes
+```{r}
+header0 <- header0 |> 
+  #standardize column names, only first word capitalized, separators always "_"
+  rename(Note = Location, 
+         Location = Place,
+         Location_uncertainty_km = accuracy,
+         FaberLangendoen_formation = `Faber-Langendoen_Formation`, 
+         Sparse_vegetation = Sparse_Vegetation
+         ) |>
+  #standardize Country codes to iso3
+  mutate(Country = fct_recode(Country, 
+                             "ARG" = "AR", 
+                             "CHL" = "CHL")) |> 
+  #make field Altitude numerical
+  mutate(Altitude = as.numeric(str_remove(Altitude, " m"))) |> 
+  #merge Altitude and Elevation field
+  rowwise() |> 
+  mutate(Elevation = as.numeric(replace(Elevation, 
+                                      list = !is.na(Elevation),
+                                      values = mean(
+                                        as.numeric(
+                                          str_split(string = Elevation, 
+                                                    pattern = "-")[[1]]))))
+  ) |> 
+  ungroup() |> 
+  mutate(Elevation_m = coalesce(Altitude, Elevation)) |> 
+  dplyr::select(-c(Altitude, Elevation, `NA`)) |> 
+  #extract additional info from the field Location to complete Aspect and Slope fields
+  #elevation
+  rowwise() |> 
+  mutate(mslm = str_extract(Location, "(\\d)+(?= *m s.n.m.)")) |> 
+  mutate(Elevation_m = coalesce(Elevation_m, as.numeric(mslm))) |> 
+  dplyr::select(-mslm) |> 
+  #aspect
+  mutate(Orientacion = str_extract(Location, "(?<=orientacion )(\\w+)|(?<=orientada al )(\\w+)|(?<=Orientada al )(\\w+)|(?<=orientadas al )(\\w+)|(?<=orientado al )(\\w+)|(?<=orientada a )(\\w+)|(?<=que mira al )(\\w+)")) |> 
+  mutate(Orientacion = as.factor(Orientacion)) |> 
+  mutate(Orientacion = fct_recode(Orientacion, 
+                                "N" = "Norte", 
+                                "NE" = "Noreste", 
+                                "NW" = "Noroeste",
+                                "S" = "Sur",
+                                "SW" = "Suroeste",
+                                "SE" = "Sureste", 
+                                "E" = "Este", 
+                                "W" = "Oeste")) |> 
+  mutate(Aspect = coalesce(Aspect, as.character(Orientacion))) |> 
+  #slope
+  mutate(Slope_degree = str_extract(Location, pattern = "(\\d)+(?=° de pendiente)|(?<= pendiente de )(\\d)+(?= *°)|(?<= pendiente del )(\\d)+(?= *°)|(?<= pendiente )(\\d)+(?= *°)|(?<= pendiente de la ladera )(\\d)+(?= *°)")) |> 
+  mutate(Slope_perc = str_extract(Location, pattern = "(\\d)+(?= *% de pendiente)|(?<= pendiente del )(\\d)+(?= *%)|(?<= pendiente )(\\d)+(?= *%)|(?<= pendiente general del )(\\d)+(?= *%)|(?<= pendiente de la ilanura )(\\d)+(?= *%)|(?<= pendientes de )(\\d)+-(\\d)+(?= *%)")) |> 
+  mutate(Slope_perc = replace(Slope_perc, 
+                            list = str_detect(Location, pattern = "sin pendiente"),
+                            values = 0)) |> 
+  mutate(Slope_perc = as.numeric(replace(Slope_perc, 
+                                      list = !is.na(Slope_perc),
+                                      values = mean(
+                                        as.numeric(
+                                          str_split(string = Slope_perc, 
+                                                    pattern = "-")[[1]]))))
+         ) |> #there are few entries in the form xx-yy
+  #%slope = tan(Angle in degrees*pi/180)*100
+  mutate(Slope_degree_toperc = tan(as.numeric(Slope_degree) * pi / 180) * 100) |> 
+  mutate(Slope_perc = coalesce(Slope_perc, Slope_degree_toperc)) |> 
+  mutate(Slope = tan(as.numeric(Slope) * pi / 180) * 100) |>  #Convert slope from degree to perc
+  mutate(Slope_perc = coalesce(Slope, Slope_perc)) |> 
+  mutate(Slope_perc = round(Slope_perc)) |> 
+  dplyr::select(-c(Slope, Slope_degree, Slope_degree_toperc)) |> 
+  #replace string "no place" with NA in field Location
+  #assign centroid of transect in Argentina to plots without location, but in AG
+  #-51.43029, -70.6218
+  mutate(Latitude = replace(Latitude, 
+                          list = str_detect(Note, 
+                                          pattern = "no place Argentina|no place ARGENTINA" ), 
+                          values = -51.43029)) |>
+  mutate(Longitude = replace(Longitude, 
+                          list = str_detect(Note, 
+                                          pattern = "no place Argentina|no place ARGENTINA" ), 
+                          values = -70.6218)) |>
+  mutate(Location_uncertainty_km = replace(Location_uncertainty_km, 
+                          list = str_detect(Note, 
+                                          pattern = "no place Argentina|no place ARGENTINA" ), 
+                          values = 250)) |>
+  #replace string with NA 
+  #the chilean plots already have the right coords
+  mutate(Location = replace(Location,
+                          list = str_detect(Location, 
+                                          pattern = "^no place$|no place Argentina|no place ARGENTINA|no place CHILE"),
+                          values = NA)) |> 
+  mutate(Location = str_replace_all(Location, 
+                                  pattern = "no place found", 
+                                  replacement = "(No exact place not found)")) |> 
+ #coalesce the fields environment and Note
+  mutate(Note = coalesce(Note, Environment)) |>
+  dplyr::select(-Environment) |> 
+  #fill up NA from Forests:Sparse_vegetation fields
+  #fill up with F those rows where at least one column on formation is assigned
+  mutate_at(.vars = vars(Forest:Wetland), .funs = ~as.logical(.)) |> 
+  rowwise() |> 
+  mutate(Any = any(Forest, Shrubland, Grassland, Wetland, Sparse_vegetation)) |> 
+  mutate(Forest = ifelse((is.na(Forest) & Any), FALSE, Forest))  |>
+  mutate(Shrubland = ifelse((is.na(Shrubland) & Any), FALSE, Shrubland))  |> 
+  mutate(Grassland = ifelse((is.na(Grassland) & Any), FALSE, Grassland))  |> 
+  mutate(Wetland = ifelse((is.na(Wetland) & Any), FALSE, Wetland))  |> 
+  mutate(Sparse_vegetation = ifelse((is.na(Sparse_vegetation) & Any), FALSE, Sparse_vegetation))  |>
+  ungroup() |> 
+  dplyr::select(-Any) |> 
+  #make Total Vegetation cover quantitative
+  rowwise() |> 
+  mutate(Total_vegetation_cover = as.numeric(replace(Total_vegetation_cover, 
+                                       list = !is.na(Total_vegetation_cover),
+                                       values = mean(
+                                         as.numeric(
+                                           str_split(string = Total_vegetation_cover, 
+                                                     pattern = "-")[[1]]))))
+  ) |> #there are few entries in the form xx-yy
+  ungroup() |> 
+  #unite the fields Location and Note
+  mutate(Note = ifelse(is.na(Note), "", paste0(" - ", Note))) |> 
+  unite("Note", Location, Note, sep="") |>
+  mutate(Note = na_if(Note, "NA"))
+```
+
+Create final header table, reorder and standardize column names.
+```{r}
+header1 <- header0 %>% 
+  dplyr::select(-c("Height_Nothofagus_pumilio_cm", 
+                   "Height_Berberis_buxifolia_cm", 
+                   #"Height_tree_layer_m", 
+                   "Height_Tepualia_stipularis_cm", 
+                   "Height_Nothofagus_antarctica_cm", 
+                   "Height_Nothofagus_betuloides_cm", 
+                   "Height_Pilgerodendron_uviferum_cm", 
+                   "Height_Drimys_winteri_cm")) |>  
+  #reorder columns
+  dplyr::select(
+    #metadata
+    "PlotID",
+    "Date",
+    #"Location",
+    "Country",
+    "Latitude",
+    "Longitude",
+    "Location_uncertainty_km",
+    "Releve_area_m2",
+    "Note",
+    #env conditions
+    "Elevation_m",
+    "Aspect",
+    "Slope_perc",
+    "Soil_type",
+    "Soil_depth_first_horizon_cm",
+    "Soil_depth_cm",
+    "Degraded_soil_perc",
+    "Vegetation_belt",
+    #veg description
+    "Total_vegetation_cover",
+    "Height_tree_layer_m",
+    "Condition",
+    "Vegetation_physiognomy",
+    #external data
+    "FaberLangendoen_formation",
+    "Forest",
+    "Shrubland",
+    "Grassland",
+    "Wetland",
+    "Sparse_vegetation"
+  ) |> 
+  mutate_at(.vars = vars(Latitude, 
+                       Longitude, 
+                       Location_uncertainty_km, 
+                       Releve_area_m2), .funs = ~as.numeric(.)) |>  
+  mutate_at(.vars = vars(Latitude, Longitude),
+            .funs = ~round(., 4))  |>  #round lat long to 4th decimal
+   mutate(Date = lubridate::parse_date_time(Date, c("%d/%m/%y",  "%m.%y", "%y-%m-%d"))) |> 
+  mutate(Date = lubridate::as_date(Date)) |> 
+  mutate(FaberLangendoen_formation = factor(FaberLangendoen_formation))
+
+```
+
+### 4.2.1 Expunge height values and add them to DT table
+
+```{r}
+species_heights <- header_long2 |> 
+  mutate_at(.vars = vars(starts_with("Height")), 
+            .funs = ~as.character(.)) |> 
+  filter_at(vars(starts_with("Height")), any_vars(!is.na(.))) |> 
+  dplyr::select(PlotID, starts_with("Height")) |> 
+  pivot_longer(-PlotID, names_to = "Variable", values_to = "Height_cm") |> 
+  mutate(Variable = str_remove(Variable, "Height_")) |>  
+  separate(Variable,into = c("Genus", "species", "um"), sep = "_") |> 
+  unite("Species", Genus:species, sep = " ") |> 
+  filter(Species != "tree layer") |> 
+  dplyr::select(-um) |>
+  filter(!is.na(Height_cm))
+
+#paste Height values to DT
+DT1 <- df.out |>  
+  left_join(species_heights, by = c("PlotID", "Species")) |>  
+  relocate(Abundance, .after = Original_species) |> 
+  relocate(Note, .after = last_col())
+```
+
+# 5. Export workbook with metadata
+Show data
+```{r}
+#select 5 random plots
+sampled_plots <- header1 |> 
+  slice_sample(n = 5) |>
+  pull(PlotID)
+
+#show header
+header1 |> 
+  filter(PlotID %in% sampled_plots) |>
+  kbl() |> 
+  kable_classic()
+
+
+#show DT
+DT1 |> 
+  filter(PlotID %in% sampled_plots) |>
+  kbl() |> 
+  kable_classic()
+
+```
+
+```{r}
+
+metadata <- lst[[1]]
+out <- createWorkbook()
+
+addWorksheet(out, "METADATA")
+addWorksheet(out, "DT")
+addWorksheet(out, "HEADER")
+
+writeData(out, sheet = "DT", x = DT1)
+writeData(out, sheet = "HEADER", x = header1)
+writeData(out, sheet = "METADATA", x = metadata)
+
+saveWorkbook(out, file = file.path(output_path, "WB-Transecta-Patagonia-v04-2023.xlsx"), overwrite = TRUE)
+
+save(DT1, header1, file = file.path(output_path, "R-Image-Transecta-Patagonia-v04-2023.RData"))
+write_csv(header1, file.path(output_path, "Header-Transecta-Patagonia-v04-2023.csv"))
+write_csv(DT1, file.path(output_path, "DT-Transecta-Patagonia-v04-2023.csv"))
+```
+
+# 6. SessionInfo()
+```{r}
+sessionInfo()
+```
+
+
+#7. Appendix 1 - List of Unresolved species names, with non-vascular plants tagged
+```{r comment=''}
+cat(readLines(file.path(temp_path, "Unresolved-Species-Tagged-v04-2023.csv")), sep = '\n')
+```
+
+
+
+
