@@ -1,4 +1,4 @@
-# Workflow
+# Transecta Botanica de la Patagonia Austral
  
 This repository documents the process of creating the database containing 668 vegetation plots reported in the 'Transecta Botanica de la Patagonia Austral' (Boelcke et al. 1985, Roig & Faggi 1985)
 
