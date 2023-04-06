@@ -55,7 +55,7 @@ The output is organized in two data.frames:
 - `Wetland` -	Boolean  
 - `Sparse_vegetation` - Boolean  
 
-# 0 Prepare workspace & load packages
+# 0. Prepare workspace & load packages
 ```{r setup, results = 'hide', warning = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -80,7 +80,7 @@ dir.exists(c(input_path, temp_path, output_path))
 
 ```
 
-# 1.Import the digitized rawdata
+# 1. Import the digitized rawdata
 Relevé tables from the Transecta were scanned, and submitted to a text recognition software. After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
 ```{r, warning = FALSE, message = FALSE}
 input_file <- "Rawdata-Transecta-Patagonia-v03-2023.xlsx"
