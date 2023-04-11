@@ -14,40 +14,40 @@ This is the complete script to transform the digitalized rawdata from the book T
 The output is organized in two data.frames:  
 \newline
 
-*DT* - It contains the species x plot data, together with species related information. It contains 6 colums:  
+*DT* - Table containing the species x plot data, together with species related information. It contains 6 columns:  
 
-- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta. It is composed by a string formatted as `tXX_gXX_pXXX`, where `t` corresponds to the table number, `g` to the group number and `p` to the plot numnber as reported in the book  
+- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta. It is composed by a string formatted as `tXX_gXX_pXXX`, where `t` corresponds to the table number, `g` to the group number and `p` to the plot number as reported in the book  
 - `Species` - Species name after taxonomic standardization. The taxonomic name is normally resolved at the species level. For a minority of taxa, it was resolved either at the infra-species (e.g., variaty), or genus level  
 - `Taxon_group` - Taxonomic group of the corresponding species. The great majority of taxa are vascular plants. A few entries correspond to algae, mosses, lichens, fungi or unknown (in case of unresolved species names)  
 - `Original_species` - Original taxonomic name as reported in the Transecta  
-- `Abundance` - Cover\\abundance value of the species in the plot, following Braun-Blanquet scale  
+- `Abundance` - Cover value (or other measure of abundance) of the species in the plot, following Braun-Blanquet scale  
 - `Match_level` - The taxonomic rank at which the taxonomic name was resolved (i.e., species, genus, unknown if unresolved)  
 - `Height_cm` - Height range of the species. This was only seldom reported in the original publication, and only for few emblematic species.  
 - `Note` - Additional notes from the original publication. Notes include information on the development stage of specific plant species (in Spanish, e.g., 'plantulas', 'renoval', 'brinzal'...), or codes to distinguish congeneric species not resolved at species name (e.g., 'I', 'II', 'III'), or codes indicating characteristic species or phytosociological alliances or classes (i.e., 'all', 'cl')  
 \newline
 
-*Header* - Table containing plot level information  
+*Header* - Table containing plot level information. It contains 26 columns:  
 
 - `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta  
 - `Date` - Date of the relevè (dd.mm.yyyy)  
 - `Country` -	Country (AR - Argentina, CHL - Chile)  
-- `Latitude` - as Degree.decimals, WGS84  
-- `Longitude` - as Degree.decimals, WGS84  
+- `Latitude` - as Degree.decimals, in WGS84  
+- `Longitude` - as Degree.decimals, in WGS84  
 - `Location_uncertainty_km` - Estimated uncertainty of the relevè position, in km	 
-- `Releve_area_m2` - Size of the vegetation relevé, in m^2	 
+- `Releve_area_m2` - Size of the vegetation relevé, in m²	 
 - `Note` - Additional text information on the relevé, normally the toponym  
-- `Elevation_m` -	Elevation above m.s.l., as reported in the Transecta (when available)  
+- `Elevation_m` -	Elevation above sea level, in m, as reported in the Transecta (when available)  
 - `Aspect` - Exposition of the relevé (e.g., NW)  
-- `Slope_perc` - Slope of the relevé (in %)	 
+- `Slope_perc` - Slope of the relevé, in %	 
 - `Soil_type` -	Soil type, as described in the Transecta (when available)  
-- `Soil_depth_first_horizon_cm` -	Depth of the first soil horizon (in cm, when available)  
-- `Soil_depth_cm` -	Depth of the soil (in cm, when available)  
-- `Degraded_soil_perc` - Cover percentage of degraded soil, as reported in the Transecata (when available)  
-- `Vegetation_belt` -	Elevational belt in the landscape, as reported (when available)  
-- `Total_vegetation_cover` - Total cover of the vegetation, as reported (in %, when available)	
-- `Height_tree_layer_m` -	Height of tree layer, as reported (in m, when available)  
+- `Soil_depth_first_horizon_cm` -	Depth of the first soil horizon, in cm (when available)  
+- `Soil_depth_cm` -	Depth of the soil, in cm (when available)  
+- `Degraded_soil_perc` - Cover of degraded soil, in %, as reported in the Transecata (when available)  
+- `Vegetation_belt` -	Elevational belt in the landscape, as reported in the Transecta (when available)  
+- `Total_vegetation_cover` - Total cover of the vegetation, in %, as reported in the Transecta (when available)	
+- `Height_tree_layer_m` -	Height of tree layer, in m, as reported in the Transecta (when available)  
 - `Condition` -	Description of the vegetation conservation status (when available)  
-- `Vegetation_physiognomy` -	Vegetation type, normally based on the phytosociological nomenclature, as reported  
+- `Vegetation_physiognomy` -	Vegetation type, normally based on the phytosociological nomenclature, as reported in the Transecta  
 - `FaberLangendoen_formation` -	Vegetation formation following the third hierarchical level of [Faber-Langendoen et al. 2016](https://www.natureserve.org/sites/default/files/faber-langendoen_etal_2016-world_formations_gtr346.pdf)  
 - `Forest` - Boolean  
 - `Shrubland` -	Boolean  
