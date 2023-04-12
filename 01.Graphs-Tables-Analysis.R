@@ -86,8 +86,17 @@ st_intersection(header1.sf %>%
   filter(Country != iso_a3)
 
 
+## Download Hi-res spatial data of South America, if needed
+southam.link <- "https://stacks.stanford.edu/file/druid:vc965bq8111/data.zip"
 
-southam <- read_sf("../../output_share_to_FS/_ancillary/Spatial/SouthAmerica.shp")
+if(!file.exists("../Data/Spatial-data/data.zip")) {
+  download.file(southam.link, 
+                destfile="../Data/Spatial-data/data.zip")
+}
+unzip(zipfile = "../Data/Spatial-data/data.zip", exdir = "../Data/Spatial-data/")
+
+southam <- read_sf("../Data/Spatial-data/SouthAmerica.shp")
+
 
 ## Create buffers around each point to show location uncertainties
 myBuff <- st_buffer(header1.sf |>  
