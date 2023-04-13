@@ -1135,7 +1135,7 @@ sessionInfo()
 ```
 
 
-#7. Appendix 1 - List of Unresolved species names, with non-vascular plants tagged
+# 7. Appendix 1 - List of Unresolved species names, with non-vascular plants tagged
 ```{r comment=''}
 cat(readLines(file.path(temp_path, "Unresolved-Species-Tagged-v04-2023.csv")), sep = '\n')
 ```
