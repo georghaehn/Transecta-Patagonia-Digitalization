@@ -875,7 +875,7 @@ openxlsx::write.xlsx(header_long2, file.path(temp_path, "Header-Transecta-Patago
 We assigned manually the Faber-Langendoen formation based on the descriptions of the vegetation data in the book while accounting for the species composition. We also assigned plots to their respective country.
 
 ## 4.1 Import header data with FL classification
-Join the new fields to the header
+Join the new fields to the header.
 ```{r}
 header_FL <- read_xlsx(file.path(temp_path, "Header-Transecta-Patagonia-Temp-Assign-v04-2023.xlsx"))
 header0 <- header_long2 |>
@@ -884,7 +884,7 @@ header0 <- header_long2 |>
 ```
 
 ## 4.2 Final cleaning and renaming
-Standardize column names, clean and harmonize additional information, parse additional plot-level (e.g., aspect, slope, elevation) information from relevé notes
+Standardize column names, clean and harmonize additional information, parse additional plot-level (e.g., aspect, slope, elevation) information from relevé notes.
 ```{r}
 header0 <- header0 |> 
   #standardize column names, only first word capitalized, separators always "_"
@@ -979,7 +979,7 @@ header0 <- header0 |>
   mutate(Note = coalesce(Note, Environment)) |>
   dplyr::select(-Environment) |> 
   #fill up NA from Forests:Sparse_vegetation fields
-  #fill up with F those rows where at least one column on formation is assigned
+  #fill up with F for those rows where at least one column on formation is assigned
   mutate_at(.vars = vars(Forest:Wetland), .funs = ~as.logical(.)) |> 
   rowwise() |> 
   mutate(Any = any(Forest, Shrubland, Grassland, Wetland, Sparse_vegetation)) |> 
