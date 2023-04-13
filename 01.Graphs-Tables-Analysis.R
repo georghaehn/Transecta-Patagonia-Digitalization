@@ -343,7 +343,10 @@ ggplot(data = SR_data2,
   scale_color_brewer(name = "Faber-Langendoen\nFormations",
                      palette = "Set1", 
                      drop = FALSE, 
-                     labels = stringr::str_extract(levels(SR_data2$FB), "^.{5}")) + 
+                     #labels = stringr::str_extract(levels(SR_data2$FB), "^.{5}")
+                     labels = stringr::str_replace(levels(SR_data2$FB), pattern = ",", replacement = "\n") |>
+                       stringr::str_replace(pattern = " Herb", replacement = "\nHerb")
+                     ) + 
   scale_x_continuous(name = "Elevation (m a.s.l.)") + 
   scale_y_continuous(name = "Species Richness") + 
   theme_bw() #+ 
@@ -351,4 +354,4 @@ ggplot(data = SR_data2,
 
 ggsave(last_plot(), 
        filename = file.path(draft_path, "Figure5-Richness-Elevation.png"), 
-       width = 6, height = 4, dpi = 300, units = "in", bg = "white")
+       width = 7, height = 4, dpi = 300, units = "in", bg = "white")
