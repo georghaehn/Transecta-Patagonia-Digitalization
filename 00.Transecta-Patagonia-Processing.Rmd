@@ -81,7 +81,7 @@ dir.exists(c(input_path, temp_path, output_path))
 ```
 
 # 1. Import the digitized rawdata
-Relevé tables from the Transecta were scanned, and submitted to a text recognition software. After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
+Relevé tables from the Transecta were scanned, and submitted to a text recognition software (ADOBE Acrobat). After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
 ```{r, warning = FALSE, message = FALSE}
 input_file <- "Rawdata-Transecta-Patagonia-v03-2023.xlsx"
 
@@ -89,7 +89,7 @@ input_sheets <- file.path(input_path, input_file)
 
 #read all digital tables from excel file, column names set to False -> 
 #to avoid first sheet row as column names 
-sheets <- readxl::excel_sheets(file.path(input_path, input_file))
+sheets <- readxl::excel_sheets(input_sheets)
 lst <- lapply(sheets, function(sheet) 
   readxl::read_excel(input_sheets, sheet = sheet, col_names = F)
 )
