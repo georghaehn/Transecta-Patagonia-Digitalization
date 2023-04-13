@@ -137,10 +137,10 @@ clean_table <- function(x) {
     pivot_longer(-Species, names_to = "plot", values_to = "abundance") |> 
     #remove entries where species was not present in plot
     filter(!is.na(abundance)) |> 
-    dplyr::select(plot, species = Species,abundance) 
+    dplyr::select(plot, species = Species, abundance) 
 }
 
-#apply function across the list to get unique plot IDs and each table to long format
+#apply function across the list to get unique plot IDs and each table in long format
 table_list <- lapply(lst[-1], clean_table) #the first one will be ignored, as it is the metadata
 
 ```
