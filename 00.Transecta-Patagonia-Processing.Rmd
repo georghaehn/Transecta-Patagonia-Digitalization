@@ -441,7 +441,7 @@ tocheck <- df |>
 
 ```
 
-The data contains `r length(unique(df$species))` species, `r length(tocheck)` species are not part of the Argentinian checklist and will be checked in the next step.
+The data contains a total of `r length(unique(df$species))` species, of which `r length(tocheck)` species are not part of the Argentinian checklist and will be checked in the next step.
 
 ## 2.2 Checked species not in the Argentinian checklist based on The Plant List
 
