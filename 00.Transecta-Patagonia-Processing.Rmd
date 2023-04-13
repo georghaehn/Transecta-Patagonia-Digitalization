@@ -593,7 +593,7 @@ checklist <- checklist |>
 ```
 
 
-Clear checklist from empty `Abbreviat` and check for duplicates
+Clear checklist from empty `Abbreviat` and check for duplicates.
 ```{r}
 
 for (i in 1:nrow(checklist)) {
