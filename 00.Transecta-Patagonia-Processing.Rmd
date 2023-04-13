@@ -14,40 +14,40 @@ This is the complete script to transform the digitalized rawdata from the book T
 The output is organized in two data.frames:  
 \newline
 
-*DT* - It contains the species x plot data, together with species related information. It contains 6 colums:  
+*DT* - Table containing the species x plot data, together with species related information. It contains 6 columns:  
 
-- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta. It is composed by a string formatted as `tXX_gXX_pXXX`, where `t` corresponds to the table number, `g` to the group number and `p` to the plot numnber as reported in the book  
+- `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta. It is composed by a string formatted as `tXX_gXX_pXXX`, where `t` corresponds to the table number, `g` to the group number and `p` to the plot number as reported in the book  
 - `Species` - Species name after taxonomic standardization. The taxonomic name is normally resolved at the species level. For a minority of taxa, it was resolved either at the infra-species (e.g., variaty), or genus level  
 - `Taxon_group` - Taxonomic group of the corresponding species. The great majority of taxa are vascular plants. A few entries correspond to algae, mosses, lichens, fungi or unknown (in case of unresolved species names)  
 - `Original_species` - Original taxonomic name as reported in the Transecta  
-- `Abundance` - Cover\\abundance value of the species in the plot, following Braun-Blanquet scale  
+- `Abundance` - Cover value (or other measure of abundance) of the species in the plot, following Braun-Blanquet scale  
 - `Match_level` - The taxonomic rank at which the taxonomic name was resolved (i.e., species, genus, unknown if unresolved)  
 - `Height_cm` - Height range of the species. This was only seldom reported in the original publication, and only for few emblematic species.  
 - `Note` - Additional notes from the original publication. Notes include information on the development stage of specific plant species (in Spanish, e.g., 'plantulas', 'renoval', 'brinzal'...), or codes to distinguish congeneric species not resolved at species name (e.g., 'I', 'II', 'III'), or codes indicating characteristic species or phytosociological alliances or classes (i.e., 'all', 'cl')  
 \newline
 
-*Header* - Table containing plot level information  
+*Header* - Table containing plot level information. It contains 26 columns:  
 
 - `PlotID` - Univocal alphanumerical code indicating the relevé in the Transecta  
 - `Date` - Date of the relevè (dd.mm.yyyy)  
 - `Country` -	Country (AR - Argentina, CHL - Chile)  
-- `Latitude` - as Degree.decimals, WGS84  
-- `Longitude` - as Degree.decimals, WGS84  
+- `Latitude` - as Degree.decimals, in WGS84  
+- `Longitude` - as Degree.decimals, in WGS84  
 - `Location_uncertainty_km` - Estimated uncertainty of the relevè position, in km	 
-- `Releve_area_m2` - Size of the vegetation relevé, in m^2	 
+- `Releve_area_m2` - Size of the vegetation relevé, in m²	 
 - `Note` - Additional text information on the relevé, normally the toponym  
-- `Elevation_m` -	Elevation above m.s.l., as reported in the Transecta (when available)  
+- `Elevation_m` -	Elevation above sea level, in m, as reported in the Transecta (when available)  
 - `Aspect` - Exposition of the relevé (e.g., NW)  
-- `Slope_perc` - Slope of the relevé (in %)	 
+- `Slope_perc` - Slope of the relevé, in %	 
 - `Soil_type` -	Soil type, as described in the Transecta (when available)  
-- `Soil_depth_first_horizon_cm` -	Depth of the first soil horizon (in cm, when available)  
-- `Soil_depth_cm` -	Depth of the soil (in cm, when available)  
-- `Degraded_soil_perc` - Cover percentage of degraded soil, as reported in the Transecata (when available)  
-- `Vegetation_belt` -	Elevational belt in the landscape, as reported (when available)  
-- `Total_vegetation_cover` - Total cover of the vegetation, as reported (in %, when available)	
-- `Height_tree_layer_m` -	Height of tree layer, as reported (in m, when available)  
+- `Soil_depth_first_horizon_cm` -	Depth of the first soil horizon, in cm (when available)  
+- `Soil_depth_cm` -	Depth of the soil, in cm (when available)  
+- `Degraded_soil_perc` - Cover of degraded soil, in %, as reported in the Transecata (when available)  
+- `Vegetation_belt` -	Elevational belt in the landscape, as reported in the Transecta (when available)  
+- `Total_vegetation_cover` - Total cover of the vegetation, in %, as reported in the Transecta (when available)	
+- `Height_tree_layer_m` -	Height of tree layer, in m, as reported in the Transecta (when available)  
 - `Condition` -	Description of the vegetation conservation status (when available)  
-- `Vegetation_physiognomy` -	Vegetation type, normally based on the phytosociological nomenclature, as reported  
+- `Vegetation_physiognomy` -	Vegetation type, normally based on the phytosociological nomenclature, as reported in the Transecta  
 - `FaberLangendoen_formation` -	Vegetation formation following the third hierarchical level of [Faber-Langendoen et al. 2016](https://www.natureserve.org/sites/default/files/faber-langendoen_etal_2016-world_formations_gtr346.pdf)  
 - `Forest` - Boolean  
 - `Shrubland` -	Boolean  
@@ -81,7 +81,7 @@ dir.exists(c(input_path, temp_path, output_path))
 ```
 
 # 1. Import the digitized rawdata
-Relevé tables from the Transecta were scanned, and submitted to a text recognition software. After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
+Relevé tables from the Transecta were scanned, and submitted to a text recognition software (ADOBE Acrobat). After a first manual check and cleaning, these were organized in an MS Excel file with one spreadsheet per table. 
 ```{r, warning = FALSE, message = FALSE}
 input_file <- "Rawdata-Transecta-Patagonia-v03-2023.xlsx"
 
@@ -89,7 +89,7 @@ input_sheets <- file.path(input_path, input_file)
 
 #read all digital tables from excel file, column names set to False -> 
 #to avoid first sheet row as column names 
-sheets <- readxl::excel_sheets(file.path(input_path, input_file))
+sheets <- readxl::excel_sheets(input_sheets)
 lst <- lapply(sheets, function(sheet) 
   readxl::read_excel(input_sheets, sheet = sheet, col_names = F)
 )
@@ -137,16 +137,16 @@ clean_table <- function(x) {
     pivot_longer(-Species, names_to = "plot", values_to = "abundance") |> 
     #remove entries where species was not present in plot
     filter(!is.na(abundance)) |> 
-    dplyr::select(plot, species = Species,abundance) 
+    dplyr::select(plot, species = Species, abundance) 
 }
 
-#apply function across the list to get unique plot IDs and each table to long format
+#apply function across the list to get unique plot IDs and each table in long format
 table_list <- lapply(lst[-1], clean_table) #the first one will be ignored, as it is the metadata
 
 ```
 
 ## 1.2 Bind all tables into one and clean some typos in the species names
-Bind all tables below each other and clean species names from typos and abbreviations
+Bind all tables below each other and clean species names from typos and abbreviations.
 ```{r}
 df <- bind_rows(table_list, .id = "table_nr") |> 
   mutate(table_nr = str_extract(table_nr, "[0-9]+")) |> 
@@ -441,9 +441,9 @@ tocheck <- df |>
 
 ```
 
-The data contains `r length(unique(df$species))` species, `r length(tocheck)` species are not part of the Argentinian checklist and will be checked in the next step.
+The data contains a total of `r length(unique(df$species))` species, of which `r length(tocheck)` species are not part of the Argentinian checklist and will be checked in the next step.
 
-## 2.2 Checked species not in the Argentinian checklist based on The Plant List
+## 2.2 Check species not in the Argentinian checklist based on The Plant List
 
 ```{r, warning = FALSE, error = FALSE, eval = FALSE}
 checked <- TPL(tocheck)
@@ -474,11 +474,11 @@ checked2 <- checked |>
                   New.Infraspecific = "")) |> 
   #mutate(oldname = Taxon) |> 
   rowwise() |> 
-  mutate(newname=paste(New.Genus, 
-                       New.Hybrid.marker, 
-                       New.Species, 
-                       New.Infraspecific.rank, 
-                       New.Infraspecific)) |> 
+  mutate(newname = paste(New.Genus, 
+                         New.Hybrid.marker, 
+                         New.Species, 
+                         New.Infraspecific.rank, 
+                         New.Infraspecific)) |> 
   ungroup() |> 
   mutate(newname = str_squish(newname))
 
@@ -503,7 +503,7 @@ accepted <- checked2 |>
 There are `r nrow(accepted)` species, which were already in the Argentinian checklist.
 
 ### 2.2.2 Synonyms
-Identify the species names being synonyms of accepted names. These names will be compared with the checklist to check whether the accepted names are already included.
+Identify the species names being synonyms of accepted names. These names will be compared with the Argentinian checklist to check whether the accepted names are already included.
 ```{r, warning = FALSE}
 tosynonyms <- checked2 |> 
   filter(Taxonomic.status == "Synonym") |>  
@@ -513,7 +513,7 @@ There are `r nrow(tosynonyms)` species which are considered synonyms by TPL.
 
 
 ### 2.2.3 Unresolved/unmatched
-Create list of unresolved or unmatched species. These species will be checked manually and eventually added to the checklist to allow import to Turboveg 2
+Create list of unresolved or unmatched species. These species will be checked manually and eventually added to the Argentinian checklist to allow import into Turboveg 2.
 ```{r}
 unres <- checked2 |> 
   filter(!Taxonomic.status %in% c("Accepted", "Synonym")) |> 
@@ -530,7 +530,7 @@ unres |>
 
 There are `r nrow(unres)` species, which could not be resolved by TPL.  
 
-We export the unresolved species to tag them, e.g. lichens and add a column of the matching level, i.e. whether a taxonomic names was matched at the species, genus, family level, or remains unknown. In this way, we don't exclude any information, but unresolved names, and non vascular plant species can be excluded by the data user, if needed. 
+We export the unresolved species to tag them, e.g. lichens, and add a column of the matching level, i.e. whether a taxonomic name was matched at the species, genus, family level, or remains unknown. In this way, we don't exclude any information but unresolved names, and non-vascular plant species can be excluded by the data user, if needed. 
 
 ```{r}
 write.csv(unres, file.path(temp_path, "Unresolved-Species-v04-2023.csv"))
@@ -540,7 +540,7 @@ write.csv(unres, file.path(temp_path, "Unresolved-Species-v04-2023.csv"))
 unres.tag <- read.csv(file.path(temp_path, "Unresolved-Species-Tagged-v04-2023.csv"))
 ```
 
-In total we have `r nrow(unres)` unresolved species. `r unres.tag |> filter(LEVEL == "SPECIES") |> pull(LEVEL) |> length()` are expected to be correct at the species level. `r unres.tag |> filter(LEVEL == "GENUS") |> pull(LEVEL) |> length()` are correct at the genus level. `r unres.tag |> filter(LEVEL == "UNKNOWN") |> pull(LEVEL) |> length()` remain unknown. `r unres.tag |> filter(TAG == "Lichen") |> pull(LEVEL) |> length()` were tagged as lichens. `r unres.tag |> filter(TAG == "Moss") |> pull(LEVEL) |> length()` were tagged as moss. `r unres.tag |> filter(TAG == "Fungi") |> pull(LEVEL) |> length()` were tagged as fungi. `r unres.tag |> filter(TAG == "Algae") |> pull(LEVEL) |> length()` were tagged as algae. `r unres.tag |> filter(TAG == "Fern") |> pull(LEVEL) |> length()` were tagged as fern.  
+In total we have `r nrow(unres)` unresolved species. `r unres.tag |> filter(LEVEL == "SPECIES") |> pull(LEVEL) |> length()` are expected to be correct at the species level. `r unres.tag |> filter(LEVEL == "GENUS") |> pull(LEVEL) |> length()` are correct at the genus level. `r unres.tag |> filter(LEVEL == "UNKNOWN") |> pull(LEVEL) |> length()` species remain unknown. `r unres.tag |> filter(TAG == "Lichen") |> pull(LEVEL) |> length()` were tagged as lichens. `r unres.tag |> filter(TAG == "Moss") |> pull(LEVEL) |> length()` were tagged as moss. `r unres.tag |> filter(TAG == "Fungi") |> pull(LEVEL) |> length()` were tagged as fungi. `r unres.tag |> filter(TAG == "Algae") |> pull(LEVEL) |> length()` were tagged as algae. `r unres.tag |> filter(TAG == "Fern") |> pull(LEVEL) |> length()` were tagged as fern.  
 The file `unresolved_species-tagged.csv` is printed in Appendix 1.
 
 
@@ -593,7 +593,7 @@ checklist <- checklist |>
 ```
 
 
-Clear checklist from empty `Abbreviat` and check for duplicates
+Clear checklist from empty `Abbreviat` and check for duplicates.
 ```{r}
 
 for (i in 1:nrow(checklist)) {
@@ -875,7 +875,7 @@ openxlsx::write.xlsx(header_long2, file.path(temp_path, "Header-Transecta-Patago
 We assigned manually the Faber-Langendoen formation based on the descriptions of the vegetation data in the book while accounting for the species composition. We also assigned plots to their respective country.
 
 ## 4.1 Import header data with FL classification
-Join the new fields to the header
+Join the new fields to the header.
 ```{r}
 header_FL <- read_xlsx(file.path(temp_path, "Header-Transecta-Patagonia-Temp-Assign-v04-2023.xlsx"))
 header0 <- header_long2 |>
@@ -884,7 +884,7 @@ header0 <- header_long2 |>
 ```
 
 ## 4.2 Final cleaning and renaming
-Standardize column names, clean and harmonize additional information, parse additional plot-level (e.g., aspect, slope, elevation) information from relevé notes
+Standardize column names, clean and harmonize additional information, parse additional plot-level (e.g., aspect, slope, elevation) information from relevé notes.
 ```{r}
 header0 <- header0 |> 
   #standardize column names, only first word capitalized, separators always "_"
@@ -979,7 +979,7 @@ header0 <- header0 |>
   mutate(Note = coalesce(Note, Environment)) |>
   dplyr::select(-Environment) |> 
   #fill up NA from Forests:Sparse_vegetation fields
-  #fill up with F those rows where at least one column on formation is assigned
+  #fill up with F for those rows where at least one column on formation is assigned
   mutate_at(.vars = vars(Forest:Wetland), .funs = ~as.logical(.)) |> 
   rowwise() |> 
   mutate(Any = any(Forest, Shrubland, Grassland, Wetland, Sparse_vegetation)) |> 
@@ -1135,7 +1135,7 @@ sessionInfo()
 ```
 
 
-#7. Appendix 1 - List of Unresolved species names, with non-vascular plants tagged
+# 7. Appendix 1 - List of Unresolved species names, with non-vascular plants tagged
 ```{r comment=''}
 cat(readLines(file.path(temp_path, "Unresolved-Species-Tagged-v04-2023.csv")), sep = '\n')
 ```
