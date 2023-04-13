@@ -146,7 +146,7 @@ table_list <- lapply(lst[-1], clean_table) #the first one will be ignored, as it
 ```
 
 ## 1.2 Bind all tables into one and clean some typos in the species names
-Bind all tables below each other and clean species names from typos and abbreviations
+Bind all tables below each other and clean species names from typos and abbreviations.
 ```{r}
 df <- bind_rows(table_list, .id = "table_nr") |> 
   mutate(table_nr = str_extract(table_nr, "[0-9]+")) |> 
