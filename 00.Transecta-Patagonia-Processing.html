@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-04-06" />
+<meta name="date" content="2023-10-04" />
 
 <title>Transecta Botanica Patagonia Austral - Data Preparation</title>
 
@@ -575,7 +575,7 @@ display: none;
 
 <h1 class="title toc-ignore">Transecta Botanica Patagonia Austral - Data
 Preparation</h1>
-<h4 class="date">2023-04-06</h4>
+<h4 class="date">2023-10-04</h4>
 
 </div>
 
@@ -595,14 +595,14 @@ well as with common plant species databases.<br />
 </ol>
 <p>The output is organized in two data.frames:<br />
 </p>
-<p><em>DT</em> - It contains the species x plot data, together with
-species related information. It contains 6 colums:</p>
+<p><em>DT</em> - Table containing the species x plot data, together with
+species related information. It contains 6 columns:</p>
 <ul>
 <li><code>PlotID</code> - Univocal alphanumerical code indicating the
 relevé in the Transecta. It is composed by a string formatted as
 <code>tXX_gXX_pXXX</code>, where <code>t</code> corresponds to the table
 number, <code>g</code> to the group number and <code>p</code> to the
-plot numnber as reported in the book<br />
+plot number as reported in the book<br />
 </li>
 <li><code>Species</code> - Species name after taxonomic standardization.
 The taxonomic name is normally resolved at the species level. For a
@@ -617,8 +617,8 @@ unresolved species names)<br />
 <li><code>Original_species</code> - Original taxonomic name as reported
 in the Transecta<br />
 </li>
-<li><code>Abundance</code> - Cover\abundance value of the species in the
-plot, following Braun-Blanquet scale<br />
+<li><code>Abundance</code> - Cover value (or other measure of abundance)
+of the species in the plot, following Braun-Blanquet scale<br />
 </li>
 <li><code>Match_level</code> - The taxonomic rank at which the taxonomic
 name was resolved (i.e., species, genus, unknown if unresolved)<br />
@@ -635,7 +635,8 @@ to distinguish congeneric species not resolved at species name (e.g.,
 phytosociological alliances or classes (i.e., ‘all’, ‘cl’)<br />
 </li>
 </ul>
-<p><em>Header</em> - Table containing plot level information</p>
+<p><em>Header</em> - Table containing plot level information. It
+contains 26 columns:</p>
 <ul>
 <li><code>PlotID</code> - Univocal alphanumerical code indicating the
 relevé in the Transecta<br />
@@ -644,52 +645,52 @@ relevé in the Transecta<br />
 </li>
 <li><code>Country</code> - Country (AR - Argentina, CHL - Chile)<br />
 </li>
-<li><code>Latitude</code> - as Degree.decimals, WGS84<br />
+<li><code>Latitude</code> - as Degree.decimals, in WGS84<br />
 </li>
-<li><code>Longitude</code> - as Degree.decimals, WGS84<br />
+<li><code>Longitude</code> - as Degree.decimals, in WGS84<br />
 </li>
 <li><code>Location_uncertainty_km</code> - Estimated uncertainty of the
 relevè position, in km<br />
 </li>
 <li><code>Releve_area_m2</code> - Size of the vegetation relevé, in
-m^2<br />
+m²<br />
 </li>
 <li><code>Note</code> - Additional text information on the relevé,
 normally the toponym<br />
 </li>
-<li><code>Elevation_m</code> - Elevation above m.s.l., as reported in
-the Transecta (when available)<br />
+<li><code>Elevation_m</code> - Elevation above sea level, in m, as
+reported in the Transecta (when available)<br />
 </li>
 <li><code>Aspect</code> - Exposition of the relevé (e.g., NW)<br />
 </li>
-<li><code>Slope_perc</code> - Slope of the relevé (in %)<br />
+<li><code>Slope_perc</code> - Slope of the relevé, in %<br />
 </li>
 <li><code>Soil_type</code> - Soil type, as described in the Transecta
 (when available)<br />
 </li>
 <li><code>Soil_depth_first_horizon_cm</code> - Depth of the first soil
-horizon (in cm, when available)<br />
+horizon, in cm (when available)<br />
 </li>
-<li><code>Soil_depth_cm</code> - Depth of the soil (in cm, when
+<li><code>Soil_depth_cm</code> - Depth of the soil, in cm (when
 available)<br />
 </li>
-<li><code>Degraded_soil_perc</code> - Cover percentage of degraded soil,
-as reported in the Transecata (when available)<br />
+<li><code>Degraded_soil_perc</code> - Cover of degraded soil, in %, as
+reported in the Transecata (when available)<br />
 </li>
 <li><code>Vegetation_belt</code> - Elevational belt in the landscape, as
-reported (when available)<br />
+reported in the Transecta (when available)<br />
 </li>
 <li><code>Total_vegetation_cover</code> - Total cover of the vegetation,
-as reported (in %, when available)<br />
-</li>
-<li><code>Height_tree_layer_m</code> - Height of tree layer, as reported
-(in m, when available)<br />
+in %, as reported in the Transecta (when available)</li>
+<li><code>Height_tree_layer_m</code> - Height of tree layer, in m, as
+reported in the Transecta (when available)<br />
 </li>
 <li><code>Condition</code> - Description of the vegetation conservation
 status (when available)<br />
 </li>
 <li><code>Vegetation_physiognomy</code> - Vegetation type, normally
-based on the phytosociological nomenclature, as reported<br />
+based on the phytosociological nomenclature, as reported in the
+Transecta<br />
 </li>
 <li><code>FaberLangendoen_formation</code> - Vegetation formation
 following the third hierarchical level of <a href="https://www.natureserve.org/sites/default/files/faber-langendoen_etal_2016-world_formations_gtr346.pdf">Faber-Langendoen
@@ -731,16 +732,16 @@ dir.exists(c(input_path, temp_path, output_path))</code></pre>
 <div id="import-the-digitized-rawdata" class="section level1">
 <h1>1. Import the digitized rawdata</h1>
 <p>Relevé tables from the Transecta were scanned, and submitted to a
-text recognition software. After a first manual check and cleaning,
-these were organized in an MS Excel file with one spreadsheet per
-table.</p>
+text recognition software (ADOBE Acrobat). After a first manual check
+and cleaning, these were organized in an MS Excel file with one
+spreadsheet per table.</p>
 <pre class="r"><code>input_file &lt;- &quot;Rawdata-Transecta-Patagonia-v03-2023.xlsx&quot;
 
 input_sheets &lt;- file.path(input_path, input_file)
 
 #read all digital tables from excel file, column names set to False -&gt; 
 #to avoid first sheet row as column names 
-sheets &lt;- readxl::excel_sheets(file.path(input_path, input_file))
+sheets &lt;- readxl::excel_sheets(input_sheets)
 lst &lt;- lapply(sheets, function(sheet) 
   readxl::read_excel(input_sheets, sheet = sheet, col_names = F)
 )
@@ -786,17 +787,22 @@ clean_table &lt;- function(x) {
     pivot_longer(-Species, names_to = &quot;plot&quot;, values_to = &quot;abundance&quot;) |&gt; 
     #remove entries where species was not present in plot
     filter(!is.na(abundance)) |&gt; 
-    dplyr::select(plot, species = Species,abundance) 
+    dplyr::select(plot, species = Species, abundance) 
 }
 
-#apply function across the list to get unique plot IDs and each table to long format
+#apply function across the list to get unique plot IDs and each table in long format
 table_list &lt;- lapply(lst[-1], clean_table) #the first one will be ignored, as it is the metadata</code></pre>
+<pre><code>## Warning: There was 1 warning in `mutate()`.
+## ℹ In argument: `across(.fns = as.character)`.
+## Caused by warning:
+## ! Using `across()` without supplying `.cols` was deprecated in dplyr 1.1.0.
+## ℹ Please supply `.cols` instead.</code></pre>
 </div>
 <div id="bind-all-tables-into-one-and-clean-some-typos-in-the-species-names" class="section level2">
 <h2>1.2 Bind all tables into one and clean some typos in the species
 names</h2>
 <p>Bind all tables below each other and clean species names from typos
-and abbreviations</p>
+and abbreviations.</p>
 <pre class="r"><code>df &lt;- bind_rows(table_list, .id = &quot;table_nr&quot;) |&gt; 
   mutate(table_nr = str_extract(table_nr, &quot;[0-9]+&quot;)) |&gt; 
   mutate(old_species = species) |&gt; 
@@ -1086,11 +1092,12 @@ tocheck &lt;- df |&gt;
   filter(!species %in% checklist$ABBREVIAT) |&gt;
   pull(species) |&gt; 
   unique() </code></pre>
-<p>The data contains 659 species, 271 species are not part of the
-Argentinian checklist and will be checked in the next step.</p>
+<p>The data contains a total of 659 species, of which 271 species are
+not part of the Argentinian checklist and will be checked in the next
+step.</p>
 </div>
-<div id="checked-species-not-in-the-argentinian-checklist-based-on-the-plant-list" class="section level2">
-<h2>2.2 Checked species not in the Argentinian checklist based on The
+<div id="check-species-not-in-the-argentinian-checklist-based-on-the-plant-list" class="section level2">
+<h2>2.2 Check species not in the Argentinian checklist based on The
 Plant List</h2>
 <pre class="r"><code>checked &lt;- TPL(tocheck)
 #show 5 random rows of TPL&#39;s output
@@ -1115,11 +1122,11 @@ combining the new genus, hybrid marker, species and rank.</p>
                   New.Infraspecific = &quot;&quot;)) |&gt; 
   #mutate(oldname = Taxon) |&gt; 
   rowwise() |&gt; 
-  mutate(newname=paste(New.Genus, 
-                       New.Hybrid.marker, 
-                       New.Species, 
-                       New.Infraspecific.rank, 
-                       New.Infraspecific)) |&gt; 
+  mutate(newname = paste(New.Genus, 
+                         New.Hybrid.marker, 
+                         New.Species, 
+                         New.Infraspecific.rank, 
+                         New.Infraspecific)) |&gt; 
   ungroup() |&gt; 
   mutate(newname = str_squish(newname))
 
@@ -1203,74 +1210,15 @@ Typo
 <tbody>
 <tr>
 <td style="text-align:left;">
-Carex subandina var. subabscondita
+Cardemine glacialis
 </td>
 <td style="text-align:left;">
-Carex subandina var. subabscondita
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-subandina
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-var.
-</td>
-<td style="text-align:left;">
-subabscondita
+Cardamine glacialis
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-1.1
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-Carex
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-subandina
-</td>
-<td style="text-align:left;">
-var.
-</td>
-<td style="text-align:left;">
-subabscondita
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Cloraea magellanica
-</td>
-<td style="text-align:left;">
-Chloraea magellanica
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-magellanica
+glacialis
 </td>
 <td style="text-align:left;">
 NA
@@ -1283,7 +1231,7 @@ NA
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-kew-39371
+kew-2699789
 </td>
 <td style="text-align:left;">
 TRUE
@@ -1295,25 +1243,25 @@ TRUE
 Accepted
 </td>
 <td style="text-align:left;">
-Orchidaceae
+Brassicaceae
 </td>
 <td style="text-align:left;">
-Chloraea
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-magellanica
+Cardamine
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
+glacialis
 </td>
 <td style="text-align:left;">
-Hook.f.
 </td>
 <td style="text-align:left;">
-kew-39371
+</td>
+<td style="text-align:left;">
+(G.Forst.) DC.
+</td>
+<td style="text-align:left;">
+kew-2699789
 </td>
 <td style="text-align:left;">
 Accepted
@@ -1324,74 +1272,15 @@ TRUE
 </tr>
 <tr>
 <td style="text-align:left;">
-Bromus setififolius var. brevifolius
+Xenthamiella nordenskj.
 </td>
 <td style="text-align:left;">
-Bromus setififolius var. brevifolius
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-setififolius
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-var.
-</td>
-<td style="text-align:left;">
-brevifolius
+Xenthamiella nordenskj.
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-1.1
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-Bromus
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-setififolius
-</td>
-<td style="text-align:left;">
-var.
-</td>
-<td style="text-align:left;">
-brevifolius
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Dactylus glomerata
-</td>
-<td style="text-align:left;">
-Dactylus glomerata
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-glomerata
+nordenskj.
 </td>
 <td style="text-align:left;">
 NA
@@ -1416,51 +1305,51 @@ FALSE
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-Dactylus
+Xenthamiella
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-glomerata
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
+nordenskj.
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-FALSE
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+TRUE
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Poa rigidifolia
+Carex curta
 </td>
 <td style="text-align:left;">
-Poa alopecurus
+Carex canescens
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-rigidifolia
-</td>
-<td style="text-align:left;">
-NA
+curta
 </td>
 <td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
+NA
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
-kew-437119
+</td>
+<td style="text-align:left;">
+kew-225804
 </td>
 <td style="text-align:left;">
 TRUE
@@ -1472,31 +1361,152 @@ TRUE
 Synonym
 </td>
 <td style="text-align:left;">
-Poaceae
+Cyperaceae
 </td>
 <td style="text-align:left;">
-Poa
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-alopecurus
+Carex
 </td>
 <td style="text-align:left;">
 </td>
 <td style="text-align:left;">
+canescens
 </td>
 <td style="text-align:left;">
-(Gaudich.) Kunth
 </td>
 <td style="text-align:left;">
-kew-435074
+</td>
+<td style="text-align:left;">
+L.
+</td>
+<td style="text-align:left;">
+kew-225264
 </td>
 <td style="text-align:left;">
 Accepted
 </td>
 <td style="text-align:left;">
 FALSE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Cerastium fontanum subsp. triviale
+</td>
+<td style="text-align:left;">
+Cerastium fontanum subsp. vulgare
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+fontanum
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+subsp.
+</td>
+<td style="text-align:left;">
+triviale
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+kew-2710344
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:left;">
+1.1
+</td>
+<td style="text-align:left;">
+Synonym
+</td>
+<td style="text-align:left;">
+Caryophyllaceae
+</td>
+<td style="text-align:left;">
+Cerastium
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+fontanum
+</td>
+<td style="text-align:left;">
+subsp.
+</td>
+<td style="text-align:left;">
+vulgare
+</td>
+<td style="text-align:left;">
+(Hartm.) Greuter &amp; Burdet
+</td>
+<td style="text-align:left;">
+kew-2710346
+</td>
+<td style="text-align:left;">
+Accepted
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Parmelia perlata
+</td>
+<td style="text-align:left;">
+Parmelia perlata
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+perlata
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+1.1
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+Parmelia
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+perlata
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+TRUE
 </td>
 </tr>
 </tbody>
@@ -1517,8 +1527,8 @@ checklist.</p>
 <div id="synonyms" class="section level3">
 <h3>2.2.2 Synonyms</h3>
 <p>Identify the species names being synonyms of accepted names. These
-names will be compared with the checklist to check whether the accepted
-names are already included.</p>
+names will be compared with the Argentinian checklist to check whether
+the accepted names are already included.</p>
 <pre class="r"><code>tosynonyms &lt;- checked2 |&gt; 
   filter(Taxonomic.status == &quot;Synonym&quot;) |&gt;  
   dplyr::select(oldname = Taxon, newname)</code></pre>
@@ -1527,8 +1537,8 @@ names are already included.</p>
 <div id="unresolvedunmatched" class="section level3">
 <h3>2.2.3 Unresolved/unmatched</h3>
 <p>Create list of unresolved or unmatched species. These species will be
-checked manually and eventually added to the checklist to allow import
-to Turboveg 2</p>
+checked manually and eventually added to the Argentinian checklist to
+allow import into Turboveg 2.</p>
 <pre class="r"><code>unres &lt;- checked2 |&gt; 
   filter(!Taxonomic.status %in% c(&quot;Accepted&quot;, &quot;Synonym&quot;)) |&gt; 
   #some of these species might already be in the checklist -&gt; exclude
@@ -1554,14 +1564,6 @@ ABBREVIAT
 <tbody>
 <tr>
 <td style="text-align:left;">
-Usnea trachycarpa
-</td>
-<td style="text-align:left;">
-Usnea trachycarpa
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Omphalodium
 </td>
 <td style="text-align:left;">
@@ -1570,42 +1572,50 @@ Omphalodium
 </tr>
 <tr>
 <td style="text-align:left;">
-polemonium micronathum
+Verbena o’donelli
 </td>
 <td style="text-align:left;">
-polemonium micronathum
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Scutellaria num
-</td>
-<td style="text-align:left;">
-Scutellaria num
+Verbena odonellii
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Psoroma
+Tortula
 </td>
 <td style="text-align:left;">
-Psoroma
+Tortula
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Peltigera
+</td>
+<td style="text-align:left;">
+Peltigera
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hymenophyllumm
+</td>
+<td style="text-align:left;">
+Hymenophyllumm
 </td>
 </tr>
 </tbody>
 </table>
 <p>There are 80 species, which could not be resolved by TPL.</p>
-<p>We export the unresolved species to tag them, e.g. lichens and add a
-column of the matching level, i.e. whether a taxonomic names was matched
+<p>We export the unresolved species to tag them, e.g. lichens, and add a
+column of the matching level, i.e. whether a taxonomic name was matched
 at the species, genus, family level, or remains unknown. In this way, we
-don’t exclude any information, but unresolved names, and non vascular
+don’t exclude any information but unresolved names, and non-vascular
 plant species can be excluded by the data user, if needed.</p>
 <pre class="r"><code>write.csv(unres, file.path(temp_path, &quot;Unresolved-Species-v04-2023.csv&quot;))</code></pre>
 <pre class="r"><code>unres.tag &lt;- read.csv(file.path(temp_path, &quot;Unresolved-Species-Tagged-v04-2023.csv&quot;))</code></pre>
 <p>In total we have 80 unresolved species. 38 are expected to be correct
-at the species level. 37 are correct at the genus level. 4 remain
-unknown. 40 were tagged as lichens. 5 were tagged as moss. 8 were tagged
-as fungi. 1 were tagged as algae. 0 were tagged as fern.<br />
+at the species level. 37 are correct at the genus level. 4 species
+remain unknown. 40 were tagged as lichens. 5 were tagged as moss. 8 were
+tagged as fungi. 1 were tagged as algae. 0 were tagged as fern.<br />
 The file <code>unresolved_species-tagged.csv</code> is printed in
 Appendix 1.</p>
 <pre class="r"><code>unres.tag |&gt; 
@@ -2770,7 +2780,7 @@ checklist &lt;- checklist |&gt;
                      SYNONYM = FALSE)  
   )</code></pre>
 <p>Clear checklist from empty <code>Abbreviat</code> and check for
-duplicates</p>
+duplicates.</p>
 <pre class="r"><code>for (i in 1:nrow(checklist)) {
   x &lt;- as.numeric(nchar(checklist[i, &quot;ABBREVIAT&quot;]), keepNA = FALSE)
   if (x &lt;= 2) {
@@ -3744,12 +3754,268 @@ species data before export.</p>
   filter(Abundance != &quot;-&quot;) |&gt; 
   mutate(Abundance = factor(Abundance)) |&gt;
   dplyr::select(-Tag) |&gt;
-  relocate(Taxon_group, .after = Species)</code></pre>
+  relocate(Taxon_group, .after = Species)
+
+#There are 8 duplicated entries. They are also duplicated in the original source.
+#We leave it to the future user to decide how to deal with those cases and leave them inside and the column duplicate. From our perspective we recommend to remove them.
+
+df.out &lt;- df.out |&gt; 
+  mutate(Duplicate = ifelse(PlotID %in%
+                             (df.out[duplicated(df.out),] |&gt; 
+                              pull(PlotID)), TRUE, FALSE))
+
+df.out[duplicated(df.out),] |&gt; 
+  kbl() |&gt; 
+  kable_classic()</code></pre>
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+PlotID
+</th>
+<th style="text-align:left;">
+Species
+</th>
+<th style="text-align:left;">
+Taxon_group
+</th>
+<th style="text-align:left;">
+Abundance
+</th>
+<th style="text-align:left;">
+Original_species
+</th>
+<th style="text-align:left;">
+Match_level
+</th>
+<th style="text-align:left;">
+Note
+</th>
+<th style="text-align:left;">
+Duplicate
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+t11_g10_p4
+</td>
+<td style="text-align:left;">
+Calceolaria biflora
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Calceolaria biflora
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t13_g13_p121
+</td>
+<td style="text-align:left;">
+Baccharis patagonica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Baccharis patagónica
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t53_gNA_p27
+</td>
+<td style="text-align:left;">
+Buellia
+</td>
+<td style="text-align:left;">
+Lichen
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Buellia sp.
+</td>
+<td style="text-align:left;">
+Genus
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t57_gNA_p1
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t57_gNA_p2
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t57_gNA_p3
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t57_gNA_p4
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t57_gNA_p5
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+Pilgerodendron uviferum
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+</tbody>
+</table></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </div>
 <div id="export" class="section level2">
 <h2>2.5 Export</h2>
-<pre class="r"><code>openxlsx::write.xlsx(df.out, file = file.path(output_path, &quot;DT-Transecta-Patagonia-v04-2023.xlsx&quot;))
-openxlsx::write.xlsx(checklist, file = file.path(output_path, &quot;Species-Transecta-Patagonia-v04-2023.xlsx&quot;))</code></pre>
+<pre class="r"><code>openxlsx::write.xlsx(df.out, file = file.path(output_path, &quot;DT-Transecta-Patagonia.xlsx&quot;))
+openxlsx::write.xlsx(checklist, file = file.path(output_path, &quot;Species-Transecta-Patagonia.xlsx&quot;))</code></pre>
 </div>
 </div>
 <div id="create-header" class="section level1">
@@ -3929,7 +4195,7 @@ species composition. We also assigned plots to their respective
 country.</p>
 <div id="import-header-data-with-fl-classification" class="section level2">
 <h2>4.1 Import header data with FL classification</h2>
-<p>Join the new fields to the header</p>
+<p>Join the new fields to the header.</p>
 <pre class="r"><code>header_FL &lt;- read_xlsx(file.path(temp_path, &quot;Header-Transecta-Patagonia-Temp-Assign-v04-2023.xlsx&quot;))
 header0 &lt;- header_long2 |&gt;
   left_join(header_FL, 
@@ -3939,7 +4205,7 @@ header0 &lt;- header_long2 |&gt;
 <h2>4.2 Final cleaning and renaming</h2>
 <p>Standardize column names, clean and harmonize additional information,
 parse additional plot-level (e.g., aspect, slope, elevation) information
-from relevé notes</p>
+from relevé notes.</p>
 <pre class="r"><code>header0 &lt;- header0 |&gt; 
   #standardize column names, only first word capitalized, separators always &quot;_&quot;
   rename(Note = Location, 
@@ -4033,7 +4299,7 @@ from relevé notes</p>
   mutate(Note = coalesce(Note, Environment)) |&gt;
   dplyr::select(-Environment) |&gt; 
   #fill up NA from Forests:Sparse_vegetation fields
-  #fill up with F those rows where at least one column on formation is assigned
+  #fill up with F for those rows where at least one column on formation is assigned
   mutate_at(.vars = vars(Forest:Wetland), .funs = ~as.logical(.)) |&gt; 
   rowwise() |&gt; 
   mutate(Any = any(Forest, Shrubland, Grassland, Wetland, Sparse_vegetation)) |&gt; 
@@ -4233,168 +4499,7 @@ Sparse_vegetation
 <tbody>
 <tr>
 <td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-1977-01-24
-</td>
-<td style="text-align:left;">
-CHL
-</td>
-<td style="text-align:right;">
--51.8386
-</td>
-<td style="text-align:right;">
--72.5105
-</td>
-<td style="text-align:right;">
-20
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-Cerca del arroyo El Alambre, proximo Ea. Bitch
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-70
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-Bosques caducifolios de Lenga Y Nire. Nothofagetea pumilionis-antarctica
-Oberd.
-</td>
-<td style="text-align:left;">
-1.B.2 Cool Temperate Forest &amp; Woodland
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-1976-12-17
-</td>
-<td style="text-align:left;">
-ARG
-</td>
-<td style="text-align:right;">
--51.8274
-</td>
-<td style="text-align:right;">
--71.6883
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-Idem
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-Comunidades criofilas del area continental; class Empetro-Bolacetea
-</td>
-<td style="text-align:left;">
-4.B.1 Temperate &amp; Boreal Alpine Tundra
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 1976-12-01
@@ -4442,7 +4547,7 @@ NA
 NA
 </td>
 <td style="text-align:right;">
-50
+80
 </td>
 <td style="text-align:left;">
 NA
@@ -4475,34 +4580,29 @@ FALSE
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t19_g27_p27
 </td>
 <td style="text-align:left;">
-1975-12-18
+1977-11-12
 </td>
 <td style="text-align:left;">
 ARG
 </td>
 <td style="text-align:right;">
--51.0667
+-51.4667
 </td>
 <td style="text-align:right;">
--70.1667
+-69.9833
 </td>
 <td style="text-align:right;">
-20
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:left;">
-Seccion La Carolina, suelo arenoso
+5
 </td>
 <td style="text-align:right;">
 NA
 </td>
 <td style="text-align:left;">
-NA
+Idem terrazas del rio Coyle, se observa fuerte degradacion, las matas de
+Nassauvia ulicina ilegan a 1 m de diametro
 </td>
 <td style="text-align:right;">
 NA
@@ -4510,6 +4610,12 @@ NA
 <td style="text-align:left;">
 NA
 </td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
 <td style="text-align:left;">
 NA
 </td>
@@ -4523,7 +4629,7 @@ NA
 NA
 </td>
 <td style="text-align:right;">
-60
+80
 </td>
 <td style="text-align:left;">
 NA
@@ -4555,34 +4661,34 @@ FALSE
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t31_gNA_p73
 </td>
 <td style="text-align:left;">
-1979-12-14
-</td>
-<td style="text-align:left;">
-CHL
-</td>
-<td style="text-align:right;">
--51.0788
-</td>
-<td style="text-align:right;">
--73.3715
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
 NA
 </td>
 <td style="text-align:left;">
-Puerto Bellavista, litoral maritimo, 2 x 0.5 m
+ARG
+</td>
+<td style="text-align:right;">
+-51.8438
+</td>
+<td style="text-align:right;">
+-69.4197
+</td>
+<td style="text-align:right;">
+2
 </td>
 <td style="text-align:right;">
 NA
 </td>
 <td style="text-align:left;">
+Cerro Norte
+</td>
+<td style="text-align:right;">
 NA
+</td>
+<td style="text-align:left;">
+W
 </td>
 <td style="text-align:right;">
 NA
@@ -4603,19 +4709,25 @@ NA
 NA
 </td>
 <td style="text-align:right;">
-70
-</td>
-<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
-Comunidades riparias: Deschampsio-Astereta cl. Nov. 
+NA
 </td>
 <td style="text-align:left;">
-2.B.4 Temperate to Polar Scrub &amp; Herb Coastal Vegetation
+Comunidades Liquenicas sobre basltos
+</td>
+<td style="text-align:left;">
+6.B.1 Temperate &amp; Boreal Cliff, Scree &amp; Other Rock Vegetation
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+FALSE
 </td>
 <td style="text-align:left;">
 FALSE
@@ -4625,6 +4737,162 @@ FALSE
 </td>
 <td style="text-align:left;">
 TRUE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+1975-12-06
+</td>
+<td style="text-align:left;">
+ARG
+</td>
+<td style="text-align:right;">
+-51.4500
+</td>
+<td style="text-align:right;">
+-69.1333
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+Idem
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Vegetacion de las lagunas temporarias
+</td>
+<td style="text-align:left;">
+2.B.2 Temperate Grassland &amp; Shrubland
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+1977-12-04
+</td>
+<td style="text-align:left;">
+CHL
+</td>
+<td style="text-align:right;">
+-51.5082
+</td>
+<td style="text-align:right;">
+-74.9414
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+Idem, bosque muy denso, arboles de 25-30 m de alto en el primer estrato
+y de 10-15 m en el segundo
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Bosques perennifolios y matorrales costeros del archipelago:
+Wintero-Nothofagetea Oberd.
+</td>
+<td style="text-align:left;">
+1.B.2 Cool Temperate Forest &amp; Woodland
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+FALSE
 </td>
 <td style="text-align:left;">
 FALSE
@@ -4662,6 +4930,9 @@ Abundance
 Match_level
 </th>
 <th style="text-align:left;">
+Duplicate
+</th>
+<th style="text-align:left;">
 Height_cm
 </th>
 <th style="text-align:left;">
@@ -4672,1333 +4943,7 @@ Note
 <tbody>
 <tr>
 <td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Nothofagus antarctica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Nothofagus antartica
-</td>
-<td style="text-align:left;">
-3
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Gunnera magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Gunnera magellanica
-</td>
-<td style="text-align:left;">
-2
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Macrachaenium gracile
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Macrachaenium gracile
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Adenocaulon chilense
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Adenocaulon chilense
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Cerastium fontanum subsp. vulgare
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cerastium font. ssp. triv.
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Valeriana lapathifolia
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Valeriana lapathifolia
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Cystopteris fragilis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cystopteris fragilis apiif.
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Cystopteris fragilis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cystopteris fragilis apiif.
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Empetrum rubrum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Empetrum rubrum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Blechnum magellanicum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Blechnum magellanicum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Berberis ilicifolia
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Berberis ilicifolia
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Osmorhiza chilensis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Osmorhiza chilensis
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Galium aparine
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Galium aparine
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Ribes magellanicum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Ribes magellanicum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Codonorchis lessonii
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Codonorchis lessonii
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Vicia magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Vicia magellanicum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Blechnum penna-marina
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Blechnum penna-marina
-</td>
-<td style="text-align:left;">
-4
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Acaena ovalifolia
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Acaena ovalifolia
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Leptinella scariosa
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cotula scariosa
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Gaultheria mucronata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Pernettya mucronata
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Viola maculata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Viola maculata
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Poa pratensis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Poa pratensis
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Holcus lanatus
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Holcus lanatus
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Cerastium fontanum subsp. vulgare
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cerastium font. Trivial.
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Noccaea magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Thlaspi magellanicum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Berberis microphylla
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Berberis buxifolia
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t2_g6_p127
-</td>
-<td style="text-align:left;">
-Taraxacum gilliesii
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Taraxacum gilliesii
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Luzula alopecurus
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Luzula alopecurus
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Bromus pellitus
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Bromus pellitus
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Senecio laseguei
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Senecio laseguei
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Empetrum rubrum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Empetrum rubrum
-</td>
-<td style="text-align:left;">
-4
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Senecio magellanicus
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Senecio magellanicus
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Adesmia pumila
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Adesmia pumila
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Festuca gracillima
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca gracillima
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Hypochaeris incana
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Hypochoeris incana
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Azorella trifurcata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella caespitosa
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Erophila verna
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Erophila verna
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Baccharis magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Baccharis magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Azorella trifurcata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella trifurcata
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Plantago uniglumis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Plantago uniglumis
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Cerastium arvense
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cerastium arvense
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Draba magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Draba magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Acaena magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Acaena magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Noccaea magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Thlapsi magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Festuca magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Perezia recurvata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Perezia recuvata
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Festuca pyrogea
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca pyrogea
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t14_g14_p70
-</td>
-<td style="text-align:left;">
-Deschampsia flexuosa
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Deschampsia flexuosa
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Carex andina
@@ -6010,10 +4955,13 @@ Vascular Plant
 Carex andina v. sub.
 </td>
 <td style="text-align:left;">
-1
-</td>
+<ul>
+<li></td>
 <td style="text-align:left;">
 Species
+</td>
+<td style="text-align:left;">
+FALSE
 </td>
 <td style="text-align:left;">
 NA
@@ -6024,7 +4972,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Festuca gracillima
@@ -6042,6 +4990,9 @@ Festuca gracillima
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -6050,7 +5001,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Nardophyllum bryoides
@@ -6062,10 +5013,13 @@ Vascular Plant
 Nardophyllum bryoid.
 </td>
 <td style="text-align:left;">
-3
+4
 </td>
 <td style="text-align:left;">
 Species
+</td>
+<td style="text-align:left;">
+FALSE
 </td>
 <td style="text-align:left;">
 NA
@@ -6076,7 +5030,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Ephedra frustillata
@@ -6094,6 +5048,9 @@ Ephedra frustillata
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -6102,16 +5059,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Verbena odonellii
+Junellia ulicina
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Verbena o´denellii
+Verbena ameghinoi
 </td>
 <td style="text-align:left;">
 <ul>
@@ -6120,6 +5077,9 @@ Verbena o´denellii
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -6128,7 +5088,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Acaena platyacantha
@@ -6146,6 +5106,9 @@ Acaena platyacantha
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -6154,7 +5117,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Calceolaria uniflora
@@ -6172,30 +5135,7 @@ Calceolaria uniflora
 Species
 </td>
 <td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Deschampsia patula
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Deschampsia patula
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
+FALSE
 </td>
 <td style="text-align:left;">
 NA
@@ -6206,605 +5146,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Plantago tehuelcha
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Plantago tehuelcha
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Bromus setifolius
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Bromus setifolius
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Leucheria millefolium
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Leucheria millefolium
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Senecio laseguei
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Senecio laseguei
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Perezia recurvata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Perezia recurvata
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Luzula chilensis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Luzula chilensis
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Rytidosperma virescens
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Rytidosp. Virescens
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Nassauvia darwinii
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Nassauvia darwinii
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Armeria maritima subsp. andina
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Armeria marit. Ssp. And.
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Hypochaeris incana
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Hypochoeris incana
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Clinopodium darwinii
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Satureja darwinii
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Azorella trifurcata
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella caespitosa
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Senecio magellanicus
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Senecio magellanicus
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Festuca magellanica
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca magellanica
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Cerastium arvense
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Cerastium arvense
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t18_gNA_p18
-</td>
-<td style="text-align:left;">
-Festuca pyrogea
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca pyrogea
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Stipa chrysophylla
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Stipa chrysophylla
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Huanaca acaulis
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Huanaca acaulis
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Astragalus palenae
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Astragalus palenae
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Festuca gracillima
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Festuca gracillima
-</td>
-<td style="text-align:left;">
-3
-</td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Colobanthus subulatus
@@ -6822,6 +5164,9 @@ Colobanthus subulatus
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -6830,16 +5175,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Erophila verna
+Deschampsia patula
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Erophila verna
+Deschampsia patula
 </td>
 <td style="text-align:left;">
 <ul>
@@ -6848,30 +5193,7 @@ Erophila verna
 Species
 </td>
 <td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Hordeum comosum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Hordeum comosum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
+FALSE
 </td>
 <td style="text-align:left;">
 NA
@@ -6882,137 +5204,7 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Oxalis enneaphylla
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Adesmia lotoides
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Galium richardianum
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Relbunium richardianum
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Azorella fuegiana
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
-</td>
-<td style="text-align:left;">
-Nassauvia darwinii
-</td>
-<td style="text-align:left;">
-Vascular Plant
-</td>
-<td style="text-align:left;">
-Nassauvia darwinii
-</td>
-<td style="text-align:left;">
-<ul>
-<li></td>
-<td style="text-align:left;">
-Species
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Poa ibarii
@@ -7030,6 +5222,9 @@ Poa dusenii
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7038,16 +5233,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Calceolaria uniflora
+Plantago tehuelcha
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Calceolaria uniflora
+Plantago tehuelcha
 </td>
 <td style="text-align:left;">
 <ul>
@@ -7056,6 +5251,9 @@ Calceolaria uniflora
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7064,16 +5262,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Silene magellanica
+Bromus setifolius
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Silene magellanica
+Bromus setifolius
 </td>
 <td style="text-align:left;">
 <ul>
@@ -7082,6 +5280,9 @@ Silene magellanica
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7090,16 +5291,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Viola maculata
+Senecio laseguei
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Viola maculata
+Senecio laseguei
 </td>
 <td style="text-align:left;">
 <ul>
@@ -7108,6 +5309,9 @@ Viola maculata
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7116,16 +5320,45 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Cerastium arvense
+Perezia recurvata
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Cerastium arvense
+Perezia recurvata
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Luzula chilensis
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Luzula chilensis
 </td>
 <td style="text-align:left;">
 <ul>
@@ -7134,6 +5367,9 @@ Cerastium arvense
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7142,7 +5378,210 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Rytidosperma virescens
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Rytidosp. Virescens
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Azorella fuegiana
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Azorella fuegiana
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Nassauvia darwinii
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Nassauvia darwinii
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Armeria maritima subsp. andina
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Armeria marit. Ssp. And.
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Adesmia lotoides
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Adesmia lotoides
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Clinopodium darwinii
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Satureja darwinii
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
+</td>
+<td style="text-align:left;">
+Noccaea magellanica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Thlaspi magellanicum
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
 Festuca magellanica
@@ -7160,6 +5599,9 @@ Festuca magellanica
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7168,16 +5610,16 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t19_g26_p201
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Perezia recurvata
+Cerastium arvense
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Perezia recurvata
+Cerastium arvense
 </td>
 <td style="text-align:left;">
 <ul>
@@ -7186,6 +5628,9 @@ Perezia recurvata
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7194,16 +5639,770 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t18_gNA_p26
 </td>
 <td style="text-align:left;">
-Deschampsia laxa
+Phaiophleps biflora
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Deschampsia laxa
+Phaiophleps biflora
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Stipa chrysophylla
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Stipa chrysophylla
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Stipa ameghinoi
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Stipa ameghinoi
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Nassauvia ulicina
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Nassauvia ulicina
+</td>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Alstroemeria patagonica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Alstromeria patagonica
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Lycium repens
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Lycium repens
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Junellia ulicina
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Verbana ameghinoi
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Carex subandina var. subabscondita
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Carex suband. V. subabs.
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Poa ibarii
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Poa dusenii
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Microsteris gracilis
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Microsteris gracilis
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t19_g27_p27
+</td>
+<td style="text-align:left;">
+Taraxacum officinale
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Taraxacum officinale
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t31_gNA_p73
+</td>
+<td style="text-align:left;">
+Caloplaca regalis
+</td>
+<td style="text-align:left;">
+Lichen
+</td>
+<td style="text-align:left;">
+Caloplaca regalis
+</td>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t31_gNA_p73
+</td>
+<td style="text-align:left;">
+Caloplaca
+</td>
+<td style="text-align:left;">
+Lichen
+</td>
+<td style="text-align:left;">
+Caloplaca sp (lll)
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+Genus
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+lll
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t31_gNA_p73
+</td>
+<td style="text-align:left;">
+Omphalodium melanoph.
+</td>
+<td style="text-align:left;">
+Fungi
+</td>
+<td style="text-align:left;">
+Omphalodium melanoph.
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Genus
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Suaeda patagonica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Suaeda patagonica
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Polygonum aviculare
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Polygonum aviculare
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Boopis australis
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Boopis australis
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Heliotropium patagonicum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Heliotropium patagonicum
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Amphiscirpus nevadensis
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Scirpus nevadensis
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Chenopodium antarcticum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Chenopodium antarcticum
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Hordeum patagonicum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Hordeum santacrucense
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t39_g53_p31
+</td>
+<td style="text-align:left;">
+Deschampsia patula
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Deschampsia patula
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Tepualia stipularis
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Tepualia stipularis (all.)
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+all.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Raukaua laetevirens
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Pseudopanax laetevirens (cl.)
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<ol start="150" style="list-style-type: lower-roman">
+<li></td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Grammitis magellanica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Grammitis magellanica
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Hymenophyllum tortuosum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Hymenophyllum tortuosum (cl.)
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<ol start="150" style="list-style-type: lower-roman">
+<li></td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Hebe elliptica
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Hebe elliptica (all.)
 </td>
 <td style="text-align:left;">
 3
@@ -7212,32 +6411,38 @@ Deschampsia laxa
 Species
 </td>
 <td style="text-align:left;">
-NA
+FALSE
 </td>
 <td style="text-align:left;">
 NA
+</td>
+<td style="text-align:left;">
+all.
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t44_g56_p99
 </td>
 <td style="text-align:left;">
-Lilaeopsis macloviana
+Nothofagus betuloides
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Lilaeopsis hillii
+Nothofagus betuloides
 </td>
 <td style="text-align:left;">
-2
+4
 </td>
 <td style="text-align:left;">
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7246,50 +6451,56 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t44_g56_p99
 </td>
 <td style="text-align:left;">
-Leptinella scariosa
+Pilgerodendron uviferum
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Cotula scariosa (tg)
+Pilgerodendron uviferum
 </td>
 <td style="text-align:left;">
-2
+1
 </td>
 <td style="text-align:left;">
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
-tg
+NA
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t44_g56_p99
 </td>
 <td style="text-align:left;">
-Scirpus cernuus
+Lebetanthus myrsinites
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Scirpus cernuus
+Lebetanthus myrsinites
 </td>
 <td style="text-align:left;">
-2
+3
 </td>
 <td style="text-align:left;">
 Species
 </td>
 <td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
@@ -7298,22 +6509,141 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
-t47_g64_p142
+t44_g56_p99
 </td>
 <td style="text-align:left;">
-Apium australe
+Senecio acanthifolius
 </td>
 <td style="text-align:left;">
 Vascular Plant
 </td>
 <td style="text-align:left;">
-Apium australe
+Senecio acanthifolius
 </td>
 <td style="text-align:left;">
 <ul>
 <li></td>
 <td style="text-align:left;">
 Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Desfontainia spinosa
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Desfontainea spinosa
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Blechnum magellanicum
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Blechnum magallanicum
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Berberis ilicifolia
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Berberis ilicifolia
+</td>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+t44_g56_p99
+</td>
+<td style="text-align:left;">
+Drimys winteri
+</td>
+<td style="text-align:left;">
+Vascular Plant
+</td>
+<td style="text-align:left;">
+Drimys winteri
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+Species
+</td>
+<td style="text-align:left;">
+FALSE
 </td>
 <td style="text-align:left;">
 NA
@@ -7328,48 +6658,9 @@ NA
 </ul></li>
 </ul></li>
 </ul></li>
+</ol></li>
 </ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul></li>
+</ol></li>
 </ul></li>
 </ul></li>
 </ul></li>
@@ -7409,72 +6700,63 @@ NA
 </ul></li>
 </ul></li>
 </ul>
-<pre class="r"><code>metadata &lt;- lst[[1]]
-out &lt;- createWorkbook()
+<pre class="r"><code>out &lt;- createWorkbook()
 
-addWorksheet(out, &quot;METADATA&quot;)
 addWorksheet(out, &quot;DT&quot;)
 addWorksheet(out, &quot;HEADER&quot;)
 
 writeData(out, sheet = &quot;DT&quot;, x = DT1)
 writeData(out, sheet = &quot;HEADER&quot;, x = header1)
-writeData(out, sheet = &quot;METADATA&quot;, x = metadata)
 
-saveWorkbook(out, file = file.path(output_path, &quot;WB-Transecta-Patagonia-v04-2023.xlsx&quot;), overwrite = TRUE)
+saveWorkbook(out, file = file.path(output_path, &quot;WB-Transecta-Patagonia.xlsx&quot;), overwrite = TRUE)
 
-save(DT1, header1, file = file.path(output_path, &quot;R-Image-Transecta-Patagonia-v04-2023.RData&quot;))
-write_csv(header1, file.path(output_path, &quot;Header-Transecta-Patagonia-v04-2023.csv&quot;))
-write_csv(DT1, file.path(output_path, &quot;DT-Transecta-Patagonia-v04-2023.csv&quot;))</code></pre>
+save(DT1, header1, file = file.path(output_path, &quot;R-Image-Transecta-Patagonia.RData&quot;))
+write_csv(header1, file.path(output_path, &quot;Header-Transecta-Patagonia.csv&quot;))
+write_csv(DT1, file.path(output_path, &quot;DT-Transecta-Patagonia.csv&quot;))</code></pre>
 </div>
 <div id="sessioninfo" class="section level1">
 <h1>6. SessionInfo()</h1>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 4.2.2 (2022-10-31 ucrt)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
-## Running under: Windows 10 x64 (build 22000)
+## Running under: Windows 10 x64 (build 22621)
 ## 
 ## Matrix products: default
 ## 
 ## locale:
-## [1] LC_COLLATE=Italian_Italy.utf8  LC_CTYPE=Italian_Italy.utf8   
-## [3] LC_MONETARY=Italian_Italy.utf8 LC_NUMERIC=C                  
-## [5] LC_TIME=Italian_Italy.utf8    
+## [1] LC_COLLATE=English_Germany.utf8  LC_CTYPE=English_Germany.utf8   
+## [3] LC_MONETARY=English_Germany.utf8 LC_NUMERIC=C                    
+## [5] LC_TIME=English_Germany.utf8    
 ## 
 ## attached base packages:
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] openxlsx_4.2.5.1 kableExtra_1.3.4 Taxonstand_2.4   pbapply_1.7-0   
-##  [5] foreign_0.8-83   readxl_1.4.1     tidyselect_1.2.0 forcats_0.5.2   
-##  [9] stringr_1.5.0    dplyr_1.0.10     purrr_0.3.5      readr_2.1.3     
-## [13] tidyr_1.2.1      tibble_3.1.8     ggplot2_3.4.0    tidyverse_1.3.2 
+##  [1] openxlsx_4.2.5.2 kableExtra_1.3.4 Taxonstand_2.4   pbapply_1.7-0   
+##  [5] foreign_0.8-84   readxl_1.4.2     tidyselect_1.2.0 lubridate_1.9.2 
+##  [9] forcats_1.0.0    stringr_1.5.0    dplyr_1.1.2      purrr_1.0.1     
+## [13] readr_2.1.4      tidyr_1.3.0      tibble_3.2.1     ggplot2_3.4.2   
+## [17] tidyverse_2.0.0 
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.9          svglite_2.1.1       lubridate_1.9.0    
-##  [4] assertthat_0.2.1    digest_0.6.31       utf8_1.2.2         
-##  [7] R6_2.5.1            cellranger_1.1.0    backports_1.4.1    
-## [10] reprex_2.0.2        evaluate_0.19       highr_0.9          
-## [13] httr_1.4.4          pillar_1.8.1        rlang_1.0.6        
-## [16] googlesheets4_1.0.1 rstudioapi_0.14     jquerylib_0.1.4    
-## [19] rmarkdown_2.18      webshot_0.5.4       googledrive_2.0.0  
-## [22] bit_4.0.5           munsell_0.5.0       broom_1.0.1        
-## [25] compiler_4.2.2      modelr_0.1.10       xfun_0.35          
-## [28] systemfonts_1.0.4   pkgconfig_2.0.3     htmltools_0.5.4    
-## [31] viridisLite_0.4.1   fansi_1.0.3         crayon_1.5.2       
-## [34] tzdb_0.3.0          dbplyr_2.2.1        withr_2.5.0        
-## [37] grid_4.2.2          jsonlite_1.8.4      gtable_0.3.1       
-## [40] lifecycle_1.0.3     DBI_1.1.3           magrittr_2.0.3     
-## [43] scales_1.2.1        zip_2.2.2           vroom_1.6.0        
-## [46] cli_3.4.1           stringi_1.7.8       cachem_1.0.6       
-## [49] fs_1.5.2            xml2_1.3.3          bslib_0.4.1        
-## [52] ellipsis_0.3.2      generics_0.1.3      vctrs_0.5.1        
-## [55] tools_4.2.2         bit64_4.0.5         glue_1.6.2         
-## [58] hms_1.1.2           parallel_4.2.2      fastmap_1.1.0      
-## [61] yaml_2.3.6          timechange_0.1.1    colorspace_2.0-3   
-## [64] gargle_1.2.1        rvest_1.0.3         knitr_1.41         
-## [67] haven_2.5.1         sass_0.4.4</code></pre>
-<p>#7. Appendix 1 - List of Unresolved species names, with non-vascular
-plants tagged</p>
+##  [1] Rcpp_1.0.10       svglite_2.1.1     digest_0.6.31     utf8_1.2.2       
+##  [5] R6_2.5.1          cellranger_1.1.0  evaluate_0.21     httr_1.4.6       
+##  [9] highr_0.10        pillar_1.9.0      rlang_1.1.0       rstudioapi_0.14  
+## [13] jquerylib_0.1.4   rmarkdown_2.21    webshot_0.5.4     bit_4.0.5        
+## [17] munsell_0.5.0     compiler_4.2.2    xfun_0.39.1       pkgconfig_2.0.3  
+## [21] systemfonts_1.0.4 htmltools_0.5.4   fansi_1.0.3       viridisLite_0.4.1
+## [25] crayon_1.5.2      tzdb_0.3.0        withr_2.5.0       grid_4.2.2       
+## [29] jsonlite_1.8.4    gtable_0.3.3      lifecycle_1.0.3   magrittr_2.0.3   
+## [33] scales_1.2.1      zip_2.3.0         cli_3.4.1         stringi_1.7.8    
+## [37] vroom_1.6.3       cachem_1.0.7      xml2_1.3.3        bslib_0.4.2      
+## [41] generics_0.1.3    vctrs_0.6.2       tools_4.2.2       bit64_4.0.5      
+## [45] glue_1.6.2        hms_1.1.3         parallel_4.2.2    fastmap_1.1.0    
+## [49] yaml_2.3.6        timechange_0.2.0  colorspace_2.0-3  rvest_1.0.3      
+## [53] knitr_1.42        sass_0.4.6</code></pre>
+</div>
+<div id="appendix-1---list-of-unresolved-species-names-with-non-vascular-plants-tagged" class="section level1">
+<h1>7. Appendix 1 - List of Unresolved species names, with non-vascular
+plants tagged</h1>
 <pre class="r"><code>cat(readLines(file.path(temp_path, &quot;Unresolved-Species-Tagged-v04-2023.csv&quot;)), sep = &#39;\n&#39;)</code></pre>
 <pre><code>,oldname,ABBREVIAT,TAG,LEVEL
 1,Gamochaeta,Gamochaeta,,GENUS

@@ -690,13 +690,26 @@ df.out <- df |>
   mutate(Abundance = factor(Abundance)) |>
   dplyr::select(-Tag) |>
   relocate(Taxon_group, .after = Species)
+
+#There are 8 duplicated entries. They are also duplicated in the original source.
+#We leave it to the future user to decide how to deal with those cases and leave them inside and the column duplicate. From our perspective we recommend to remove them.
+
+df.out <- df.out |> 
+  mutate(Duplicate = ifelse(PlotID %in%
+                             (df.out[duplicated(df.out),] |> 
+                              pull(PlotID)), TRUE, FALSE))
+
+df.out[duplicated(df.out),] |> 
+  kbl() |> 
+  kable_classic()
+
 ```
 
 ## 2.5 Export
 
 ```{r, warning = FALSE}
-openxlsx::write.xlsx(df.out, file = file.path(output_path, "DT-Transecta-Patagonia-v04-2023.xlsx"))
-openxlsx::write.xlsx(checklist, file = file.path(output_path, "Species-Transecta-Patagonia-v04-2023.xlsx"))
+openxlsx::write.xlsx(df.out, file = file.path(output_path, "DT-Transecta-Patagonia.xlsx"))
+openxlsx::write.xlsx(checklist, file = file.path(output_path, "Species-Transecta-Patagonia.xlsx"))
 ```
 
 # 3. Create Header
@@ -1111,22 +1124,19 @@ DT1 |>
 
 ```{r}
 
-metadata <- lst[[1]]
 out <- createWorkbook()
 
-addWorksheet(out, "METADATA")
 addWorksheet(out, "DT")
 addWorksheet(out, "HEADER")
 
 writeData(out, sheet = "DT", x = DT1)
 writeData(out, sheet = "HEADER", x = header1)
-writeData(out, sheet = "METADATA", x = metadata)
 
-saveWorkbook(out, file = file.path(output_path, "WB-Transecta-Patagonia-v04-2023.xlsx"), overwrite = TRUE)
+saveWorkbook(out, file = file.path(output_path, "WB-Transecta-Patagonia.xlsx"), overwrite = TRUE)
 
-save(DT1, header1, file = file.path(output_path, "R-Image-Transecta-Patagonia-v04-2023.RData"))
-write_csv(header1, file.path(output_path, "Header-Transecta-Patagonia-v04-2023.csv"))
-write_csv(DT1, file.path(output_path, "DT-Transecta-Patagonia-v04-2023.csv"))
+save(DT1, header1, file = file.path(output_path, "R-Image-Transecta-Patagonia.RData"))
+write_csv(header1, file.path(output_path, "Header-Transecta-Patagonia.csv"))
+write_csv(DT1, file.path(output_path, "DT-Transecta-Patagonia.csv"))
 ```
 
 # 6. SessionInfo()
